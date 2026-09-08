@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#081522">
-<title>GTVI 26 Weather App · Mobile v34</title>
+<title>GTVI 26 Weather App · Mobile v35</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
 :root {
@@ -1152,7 +1152,6 @@ details.modelDetail summary{font-size:9px}
   <div class="routeInner">
     <div id="map"></div>
     <svg id="profile" viewBox="0 0 640 160" preserveAspectRatio="none"></svg>
-    <div id="thresholds" class="thresholds"></div>
   </div>
 </details>
 
@@ -1884,7 +1883,6 @@ function drawProfile(s){
  if(!tickVals.includes(maxE))tickVals.push(maxE);
  let levels=tickVals.map(e=>`<line x1="${p}" y1="${Y(e)}" x2="${W-p}" y2="${Y(e)}" stroke="#688096" stroke-dasharray="4 5"/><text x="${W-p-3}" y="${Math.max(10,Y(e)-3)}" text-anchor="end" fill="#7890a5" font-size="10">${e.toLocaleString("en-GB")}m</text>`).join("");
  svg.innerHTML=levels+`<path d="${d}" fill="none" stroke="#58b7f4" stroke-width="3" vector-effect="non-scaling-stroke"/><circle cx="${X(s.max_km)}" cy="${Y(s.max_ele)}" r="5" fill="#f1cc74"/>`;
- document.getElementById("thresholds").textContent=`Above 1,000 m: ${s.above["1000"]} km · Above 1,500 m: ${s.above["1500"]} km · Above 2,000 m: ${s.above["2000"]} km`;
 }
 async function render(force=false){
  const token=++renderToken;
