@@ -1,0 +1,35 @@
+name: Apply mobile v36
+
+on:
+  push:
+    paths:
+      - '.github/workflows/apply-v36.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  update-index:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update index.html to v36
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          old = '<div class="sectionTitle mobileWayTitle"><strong>Weather along the way -</strong> <span class="wayTimingInline">Timed to your ride plan. Weather is matched to where you’re expected to be based on start time, speed and stops selected in Ride Plan.</span></div>'
+          new = '<div class="sectionTitle mobileWayTitle"><strong>Weather along the way -</strong> <span class="wayTimingInline">Weather is matched to your expected position on the route, based on your start time, riding speed and planned stops.</span></div>'
+          if old not in s:
+              raise SystemExit('Expected Weather along the way text not found')
+          s = s.replace(old, new, 1)
+          s = s.replace('<title>GTVI 26 Weather App · Mobile v35</title>', '<title>GTVI 26 Weather App · Mobile v36</title>', 1)
+          p.write_text(s, encoding='utf-8')
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Update weather along the way copy to v36"
+          git push
