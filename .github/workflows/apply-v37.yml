@@ -1,0 +1,76 @@
+name: Apply mobile v37
+
+on:
+  push:
+    paths:
+      - '.github/workflows/apply-v37.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  update-index:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update elevation distance scale to v37
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          old = '''function drawProfile(s){
+           const svg=document.getElementById("profile"),pts=s.line,W=640,H=160,p=16;
+           const routeMax=Math.max(...pts.map(x=>x.ele));
+           // Dynamic elevation scale: keep the day's high point close to the top
+           // while leaving a little headroom. Round to a rider-friendly interval.
+           const maxE=Math.max(500,Math.ceil((routeMax*1.12)/100)*100);
+           const step=maxE<=600?100:maxE<=1200?200:maxE<=1800?250:500;
+           const X=k=>p+(W-2*p)*k/s.distance,Y=e=>H-p-(H-2*p)*e/maxE;
+           let d=pts.map((x,i)=>(i?"L":"M")+X(x.km).toFixed(1)+","+Y(x.ele).toFixed(1)).join(" ");
+           const tickVals=[];
+           for(let e=step;e<maxE;e+=step)tickVals.push(e);
+           if(!tickVals.includes(maxE))tickVals.push(maxE);
+           let levels=tickVals.map(e=>`<line x1="${p}" y1="${Y(e)}" x2="${W-p}" y2="${Y(e)}" stroke="#688096" stroke-dasharray="4 5"/><text x="${W-p-3}" y="${Math.max(10,Y(e)-3)}" text-anchor="end" fill="#7890a5" font-size="10">${e.toLocaleString("en-GB")}m</text>`).join("");
+           svg.innerHTML=levels+`<path d="${d}" fill="none" stroke="#58b7f4" stroke-width="3" vector-effect="non-scaling-stroke"/><circle cx="${X(s.max_km)}" cy="${Y(s.max_ele)}" r="5" fill="#f1cc74"/>`;
+          }'''
+          new = '''function drawProfile(s){
+           const svg=document.getElementById("profile"),pts=s.line,W=640,H=160,p=16;
+           const routeMax=Math.max(...pts.map(x=>x.ele));
+           // Dynamic elevation scale: keep the day's high point close to the top
+           // while leaving a little headroom. Round to a rider-friendly interval.
+           const maxE=Math.max(500,Math.ceil((routeMax*1.12)/100)*100);
+           const step=maxE<=600?100:maxE<=1200?200:maxE<=1800?250:500;
+           const X=k=>p+(W-2*p)*k/s.distance,Y=e=>H-p-(H-2*p)*e/maxE;
+           let d=pts.map((x,i)=>(i?"L":"M")+X(x.km).toFixed(1)+","+Y(x.ele).toFixed(1)).join(" ");
+
+           const tickVals=[];
+           for(let e=step;e<maxE;e+=step)tickVals.push(e);
+           if(!tickVals.includes(maxE))tickVals.push(maxE);
+           const levels=tickVals.map(e=>`<line x1="${p}" y1="${Y(e)}" x2="${W-p}" y2="${Y(e)}" stroke="#688096" stroke-dasharray="4 5"/><text x="${W-p-3}" y="${Math.max(10,Y(e)-3)}" text-anchor="end" fill="#7890a5" font-size="10">${e.toLocaleString("en-GB")}m</text>`).join("");
+
+           // Dynamic horizontal distance scale.
+           const dStep=s.distance<=120?20:s.distance<=175?25:50;
+           const dTicks=[0];
+           for(let km=dStep;km<s.distance;km+=dStep)dTicks.push(km);
+           if(s.distance-dTicks[dTicks.length-1]>dStep*.35)dTicks.push(Math.round(s.distance));
+           const distanceScale=dTicks.map((km,i)=>{
+             const x=X(km);
+             const anchor=i===0?"start":i===dTicks.length-1?"end":"middle";
+             return `<line x1="${x}" y1="${H-p}" x2="${x}" y2="${H-p+4}" stroke="#7890a5"/><text x="${x}" y="${H-2}" text-anchor="${anchor}" fill="#7890a5" font-size="9">${km} km</text>`;
+           }).join("");
+
+           svg.innerHTML=levels+distanceScale+`<path d="${d}" fill="none" stroke="#58b7f4" stroke-width="3" vector-effect="non-scaling-stroke"/><circle cx="${X(s.max_km)}" cy="${Y(s.max_ele)}" r="5" fill="#f1cc74"/>`;
+          }'''
+          if old not in s:
+              raise SystemExit('Expected v36 drawProfile block not found')
+          s = s.replace(old, new, 1)
+          s = s.replace('<title>GTVI 26 Weather App · Mobile v36</title>', '<title>GTVI 26 Weather App · Mobile v37</title>', 1)
+          p.write_text(s, encoding='utf-8')
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Add distance scale to elevation profile v37"
+          git push
