@@ -1,0 +1,38 @@
+name: Apply mobile v69
+
+on:
+  push:
+    paths:
+      - '.github/workflows/apply-v69.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Fix runtime consensus label
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text()
+          old='ag.textContent=headlineConsensus.charAt(0).toUpperCase()+headlineConsensus.slice(1)+" forecast consensus";'
+          new='ag.textContent="Current forecast consensus: "+headlineConsensus.charAt(0).toUpperCase()+headlineConsensus.slice(1);'
+          if old not in s:
+              raise SystemExit('runtime consensus assignment not found')
+          s=s.replace(old,new,1)
+          s=s.replace('<title>GTVI 26 Weather App · Mobile v68</title>','<title>GTVI 26 Weather App · Mobile v69</title>',1)
+          p.write_text(s)
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Fix live consensus label in mobile v69"
+          git push origin main
