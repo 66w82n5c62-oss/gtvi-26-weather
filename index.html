@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#081522">
-<title>GTVI 26 Weather App · Mobile v49</title>
+<title>GTVI 26 Weather App · Mobile v64</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
 :root {
@@ -394,8 +394,22 @@ header{align-items:center;margin-bottom:8px}
   color:#7891a6;
   text-align:center;
 }
+.weatherAlongBox{
+  margin:11px 0 13px;
+  padding:11px 10px 10px;
+  background:#0b1d2d;
+  border:1px solid #27455f;
+  border-radius:13px;
+}
 .mobileWayTitle{
   line-height:1.35;
+  margin:0 2px 9px;
+}
+.mobileWayTitle strong{
+  font-size:18px;
+  font-weight:800;
+  color:var(--text);
+  letter-spacing:-.01em;
 }
 .mobileWayTitle .wayTimingInline{
   font-weight:400;
@@ -659,9 +673,14 @@ header{align-items:center;margin-bottom:8px}
   stroke:#ffd84d;
   stroke-width:2.45;
 }
+.cycleSunIcon .cycleInnerRim{
+  fill:none;
+  stroke:var(--bg);
+  stroke-width:2.1;
+}
 .cycleSunIcon .cycleSpokes line{
   stroke:#ffd84d;
-  stroke-width:.9;
+  stroke-width:.7;
   stroke-linecap:round;
 }
 .cycleSunIcon .cycleHub{
@@ -798,7 +817,7 @@ details.modelDetail summary{font-size:9px}
 }
 .mobileRiskDisclosure>summary::-webkit-details-marker{display:none}
 .mobileRiskDisclosure>summary::after{
-  content:"＋";
+  content:none;
   font-size:16px;
   color:#88a5bb;
 }
@@ -839,7 +858,7 @@ details.modelDetail summary{font-size:9px}
 }
 .mobileRideDisclosure>summary::-webkit-details-marker{display:none}
 .mobileRideDisclosure>summary::after{
-  content:"＋";
+  content:none;
   font-size:17px;
   line-height:1;
   color:#88a5bb;
@@ -925,7 +944,7 @@ details.modelDetail summary{font-size:9px}
 }
 .aboutForecast>summary::-webkit-details-marker{display:none}
 .aboutForecast>summary::after{
-  content:"+";
+  content:none;
   font-size:16px;
   line-height:1;
   color:#8eabc1;
@@ -950,6 +969,69 @@ details.modelDetail summary{font-size:9px}
   color:#7891a6;
   font-size:9.5px;
 }
+
+#startTime{
+  font-size:13px;
+}
+
+
+/* Unified expand/collapse treatment */
+details > summary{
+  position:relative;
+  list-style:none;
+  cursor:pointer;
+  padding-left:20px;
+}
+details > summary::-webkit-details-marker{
+  display:none;
+}
+details > summary::marker{
+  content:"";
+}
+details > summary::before{
+  content:"▸";
+  position:absolute;
+  left:0;
+  top:50%;
+  transform:translateY(-50%);
+  color:var(--muted);
+  font-size:17px;
+  line-height:1;
+}
+details[open] > summary::before{
+  content:"▾";
+}
+
+
+.weatherDayTitleMatch{
+  font-size:18px !important;
+  font-weight:800;
+  color:var(--text);
+  letter-spacing:-.01em;
+}
+
+
+.cycleSunRainWrap{
+  position:relative;
+  display:inline-block;
+  width:32px;
+  height:32px;
+}
+.cycleSunRainWrap .cycleSunIcon{
+  position:absolute;
+  inset:0;
+}
+.cycleRainOverlay{
+  position:absolute;
+  inset:0;
+  width:32px;
+  height:32px;
+  pointer-events:none;
+}
+.cycleRainOverlay path{
+  fill:#58b7f4;
+}
+
 </style>
 </head>
 <body>
@@ -963,7 +1045,7 @@ details.modelDetail summary{font-size:9px}
 <div id="days" class="days"></div>
 
 <section class="hero mobileHero">
-  <div class="eyebrow weatherDayTitle" id="stageLabel">Weather for the day</div>
+  <div class="eyebrow weatherDayTitle weatherDayTitleMatch" id="stageLabel">Weather for the day</div>
 
   <div class="mobileRouteHead">
     <div class="mobileRouteCopy">
@@ -986,7 +1068,7 @@ details.modelDetail summary{font-size:9px}
 
   <div class="metrics mobileWeatherMetrics mobileWeatherThree">
     <div class="metric mobileWeatherCard">
-      <div class="weatherGlyph" id="mSkyIcon" aria-hidden="true">⛅</div>
+      <div class="weatherGlyph" id="mSkyIcon" aria-hidden="true"></div>
       <div class="weatherCardText">
         <div class="label">Temperature</div>
         <div class="value" id="mTemp">—</div>
@@ -1031,7 +1113,7 @@ details.modelDetail summary{font-size:9px}
 
     <div class="mobileControlRow">
       <div class="mobileControlCard">
-        <div class="mobileLabel">Start</div>
+        <div class="mobileLabel">WHEELS ROLLING</div>
         <div class="mobileStepper">
           <button id="timeBack" class="mobileStep" type="button" aria-label="Start 15 minutes earlier">‹</button>
           <input id="startTime" class="mobileTimeInput" type="text" value="08:30" inputmode="numeric" maxlength="5" pattern="[0-2][0-9]:[0-5][0-9]" aria-label="Exact start time in 24-hour HH:MM format">
@@ -1040,7 +1122,7 @@ details.modelDetail summary{font-size:9px}
       </div>
 
       <div class="mobileControlCard">
-        <div class="mobileLabel">Moving speed</div>
+        <div class="mobileLabel">SPEED</div>
         <div class="mobileStepper">
           <button id="speedDown" class="mobileStep" type="button" aria-label="Reduce average speed by 1 kilometre per hour">‹</button>
           <div id="speedValue" class="mobileControlValue">20 km/h</div>
@@ -1107,7 +1189,7 @@ details.modelDetail summary{font-size:9px}
       </div>
 
       <div class="mobileStopRow">
-        <div class="mobileStopName">☕ Afternoon coffee</div>
+        <div class="mobileStopName">☕ Afternoon tea</div>
         <div class="mobileStopField">
           <div class="mobileStopFieldLabel">At</div>
           <div class="mobileStopCtl">
@@ -1131,9 +1213,11 @@ details.modelDetail summary{font-size:9px}
   </details>
 </section>
 
-<div class="sectionTitle mobileWayTitle"><strong>Weather along the way -</strong> <span class="wayTimingInline">Weather is matched to your expected position on the route, based on your start time, riding speed and planned stops.</span></div>
+<section class="weatherAlongBox">
+  <div class="mobileWayTitle"><strong>WEATHER ALONG THE WAY</strong> <span class="wayTimingInline">is matched to your expected position on the route, based on your start time, riding speed and planned stops.</span></div>
 
-<div id="timeline" class="timeline"><div class="stop">Loading…</div></div>
+  <div id="timeline" class="timeline"><div class="stop">Loading…</div></div>
+</section>
 
 <details id="routeDetails" class="routeBox">
   <summary>Route & elevation details</summary>
@@ -1182,9 +1266,15 @@ function cycleSunIcon(withCloud=false){
    const px=halfWidth*Math.sin(a),py=halfWidth*Math.cos(a);
    return `<path d="M ${(bx-px).toFixed(1)} ${(by+py).toFixed(1)} L ${(bx+px).toFixed(1)} ${(by-py).toFixed(1)} L ${tx.toFixed(1)} ${ty.toFixed(1)} Z"/>`;
  }).join("");
- const spokes=Array.from({length:12},(_,i)=>{
-   const a=(Math.PI*2*i/12),x=24+12.7*Math.cos(a),y=24+12.7*Math.sin(a);
-   return `<line x1="24" y1="24" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}"/>`;
+ const spokes=Array.from({length:24},(_,i)=>{
+   const a=(Math.PI*2*i/24);
+   // Denser crossed-lacing pattern so the wheel reads more like a road-bike wheel
+   // rather than a sparse motorbike-style wheel.
+   const startAngle=a + (i%2===0 ? -0.12 : 0.12);
+   const endAngle=a + (i%2===0 ? 0.24 : -0.24);
+   const x1=24+3.1*Math.cos(startAngle), y1=24+3.1*Math.sin(startAngle);
+   const x2=24+12.7*Math.cos(endAngle),  y2=24+12.7*Math.sin(endAngle);
+   return `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}"/>`;
  }).join("");
  const cloud=withCloud?`<g class="cycleCloud">
    <ellipse cx="34" cy="31.5" rx="8" ry="5.2"/>
@@ -1195,12 +1285,22 @@ function cycleSunIcon(withCloud=false){
  return `<svg class="cycleSunIcon${withCloud?" hasCloud":""}" viewBox="0 0 48 48" aria-hidden="true">
    <g class="cycleRays">${rays}</g>
    <circle class="cycleRim" cx="24" cy="24" r="14"/>
+   <circle class="cycleInnerRim" cx="24" cy="24" r="12.9"/>
    <g class="cycleSpokes">${spokes}</g>
    <circle class="cycleHub" cx="24" cy="24" r="2.2"/>
    ${cloud}
  </svg>`;
 }
-const WICON=c=>c>=95?"⛈️":c>=80?"🌦️":c>=61?"🌧️":c>=51?"🌦️":c>=45?"🌫️":c===0?cycleSunIcon(false):c<=2?cycleSunIcon(true):"☁️";
+
+function cycleSunRainIcon(){
+ return `<span class="cycleSunRainWrap">${cycleSunIcon(true)}
+   <svg class="cycleRainOverlay" viewBox="0 0 48 48" aria-hidden="true">
+     <path d="M30 34 C28.7 36 28.7 38 30 39.2 C31.3 38 31.3 36 30 34 Z"/>
+     <path d="M37 34 C35.7 36 35.7 38 37 39.2 C38.3 38 38.3 36 37 34 Z"/>
+   </svg></span>`;
+}
+const WICON=c=>c>=95?"⛈️":c>=80?cycleSunRainIcon():c>=61?"🌧️":c>=51?cycleSunRainIcon():c>=45?"🌫️":c===0?cycleSunIcon(false):c<=2?cycleSunIcon(true):"☁️";
+if(document.getElementById("mSkyIcon")) document.getElementById("mSkyIcon").innerHTML=cycleSunIcon(true);
 
 function stage(key=activeKey){return ROUTES[key]}
 
@@ -1723,7 +1823,7 @@ function baseUI(s){
  document.getElementById("explain").textContent="Comparing three forecasts along your actual route.";
  document.getElementById("agreement").className="agree medium";document.getElementById("agreement").textContent="LOADING";
  document.getElementById("mTemp").textContent="—";document.getElementById("mRain").textContent="—";document.getElementById("mWind").textContent="—";document.getElementById("mRainIcon").innerHTML=rainAmountIcon("none");
- document.getElementById("mSkyIcon").textContent="⛅";document.getElementById("mSkySub").textContent="Sun / cloud loading…";
+ document.getElementById("mSkyIcon").innerHTML=cycleSunIcon(true);document.getElementById("mSkySub").textContent="Sun / cloud loading…";
  document.getElementById("mRainSub").textContent="";document.getElementById("mWindSub").textContent="";
  document.getElementById("ensembleRisk").innerHTML=`
  <div class="riskRow"><div class="riskRowTitle">Wind</div><div class="riskMain">Loading…</div></div>
