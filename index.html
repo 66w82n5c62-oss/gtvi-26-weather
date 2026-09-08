@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#081522">
-<title>GTVI 26 Weather App · Mobile v68</title>
+<title>GTVI 26 Weather App · Mobile v69</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
 :root {
@@ -1928,7 +1928,7 @@ function renderDeterministicResults(results,s,token,ensembleState){
  if(loadedModels>=2){
    const headlineConsensus=consensusSm?.overall||sm.overall;
    ag.className="agree "+headlineConsensus;
-   ag.textContent=headlineConsensus.charAt(0).toUpperCase()+headlineConsensus.slice(1)+" forecast consensus";
+   ag.textContent="Current forecast consensus: "+headlineConsensus.charAt(0).toUpperCase()+headlineConsensus.slice(1);
    document.getElementById("explain").textContent=headlineConsensus==="high"?"The main forecasts tell a similar story along the route.":"";
  }else{
    ag.className="agree medium";
