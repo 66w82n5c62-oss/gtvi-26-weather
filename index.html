@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#081522">
-<title>GTVI 26 Weather App · Mobile v28</title>
+<title>GTVI 26 Weather App · Mobile v29</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
 :root {
@@ -630,6 +630,7 @@ header{align-items:center;margin-bottom:8px}
   justify-content:center;
   min-width:0;
 }
+.clearSun{color:#ffd84d;font-family:Arial,sans-serif;font-weight:700}
 .wxIcon{
   grid-column:auto!important;
   grid-row:auto!important;
@@ -1090,7 +1091,7 @@ const DAY_KEYS=["D1","D2","D3","D4","D5A","D5B","D6","D7"];
 let activeKey="D1", cache={}, pending={}, ensembleCache={}, ensemblePending={}, sunCache={}, sunPending={}, map=null, lineLayer=null, markerLayer=null, renderToken=0, avgSpeed=20, stopPlans={};
 
 const WDESC={0:"Clear",1:"Mostly clear",2:"Partly cloudy",3:"Cloudy",45:"Fog",48:"Fog",51:"Drizzle",53:"Drizzle",55:"Drizzle",61:"Light rain",63:"Rain",65:"Heavy rain",80:"Showers",81:"Showers",82:"Heavy showers",95:"Thunderstorms",96:"Thunderstorms",99:"Thunderstorms"};
-const WICON=c=>c>=95?"⛈️":c>=80?"🌦️":c>=61?"🌧️":c>=51?"🌦️":c>=45?"🌫️":c===0?"☀️":c<=2?"🌤️":"☁️";
+const WICON=c=>c>=95?"⛈️":c>=80?"🌦️":c>=61?"🌧️":c>=51?"🌦️":c>=45?"🌫️":c===0?'<span class="clearSun">☀</span>':c<=2?"🌤️":"☁️";
 
 function stage(key=activeKey){return ROUTES[key]}
 
