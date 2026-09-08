@@ -1,0 +1,57 @@
+name: Apply mobile v34
+
+on:
+  push:
+    paths:
+      - '.github/workflows/apply-v34.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  update-app:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update elevation profile scaling
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          s=s.replace('<title>GTVI 26 Weather App · Mobile v33</title>','<title>GTVI 26 Weather App · Mobile v34</title>',1)
+          old='''function drawProfile(s){
+           const svg=document.getElementById("profile"),pts=s.line,W=640,H=160,p=16,maxE=Math.max(2050,Math.ceil(Math.max(...pts.map(x=>x.ele))/250)*250);
+           const X=k=>p+(W-2*p)*k/s.distance,Y=e=>H-p-(H-2*p)*e/maxE;
+           let d=pts.map((x,i)=>(i?"L":"M")+X(x.km).toFixed(1)+","+Y(x.ele).toFixed(1)).join(" ");
+           let levels=[1000,1500,2000].map(e=>`<line x1="${p}" y1="${Y(e)}" x2="${W-p}" y2="${Y(e)}" stroke="#688096" stroke-dasharray="4 5"/><text x="${W-p-3}" y="${Y(e)-3}" text-anchor="end" fill="#7890a5" font-size="10">${e}m</text>`).join("");
+           svg.innerHTML=levels+`<path d="${d}" fill="none" stroke="#58b7f4" stroke-width="3" vector-effect="non-scaling-stroke"/><circle cx="${X(s.max_km)}" cy="${Y(s.max_ele)}" r="5" fill="#f1cc74"/>`;
+           document.getElementById("thresholds").textContent=`Above 1,000 m: ${s.above["1000"]} km · Above 1,500 m: ${s.above["1500"]} km · Above 2,000 m: ${s.above["2000"]} km`;
+          }'''
+          new='''function drawProfile(s){
+           const svg=document.getElementById("profile"),pts=s.line,W=640,H=160,p=16;
+           const routeMax=Math.max(...pts.map(x=>x.ele));
+           // Dynamic elevation scale: keep the day's high point close to the top
+           // while leaving a little headroom. Round to a rider-friendly interval.
+           const maxE=Math.max(500,Math.ceil((routeMax*1.12)/100)*100);
+           const step=maxE<=600?100:maxE<=1200?200:maxE<=1800?250:500;
+           const X=k=>p+(W-2*p)*k/s.distance,Y=e=>H-p-(H-2*p)*e/maxE;
+           let d=pts.map((x,i)=>(i?"L":"M")+X(x.km).toFixed(1)+","+Y(x.ele).toFixed(1)).join(" ");
+           const tickVals=[];
+           for(let e=step;e<maxE;e+=step)tickVals.push(e);
+           if(!tickVals.includes(maxE))tickVals.push(maxE);
+           let levels=tickVals.map(e=>`<line x1="${p}" y1="${Y(e)}" x2="${W-p}" y2="${Y(e)}" stroke="#688096" stroke-dasharray="4 5"/><text x="${W-p-3}" y="${Math.max(10,Y(e)-3)}" text-anchor="end" fill="#7890a5" font-size="10">${e.toLocaleString("en-GB")}m</text>`).join("");
+           svg.innerHTML=levels+`<path d="${d}" fill="none" stroke="#58b7f4" stroke-width="3" vector-effect="non-scaling-stroke"/><circle cx="${X(s.max_km)}" cy="${Y(s.max_ele)}" r="5" fill="#f1cc74"/>`;
+           document.getElementById("thresholds").textContent=`Above 1,000 m: ${s.above["1000"]} km · Above 1,500 m: ${s.above["1500"]} km · Above 2,000 m: ${s.above["2000"]} km`;
+          }'''
+          if old not in s:
+              raise SystemExit('drawProfile block not found; refusing to modify')
+          s=s.replace(old,new,1)
+          p.write_text(s,encoding='utf-8')
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Make elevation profile scale dynamic"
+          git push
