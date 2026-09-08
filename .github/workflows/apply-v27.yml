@@ -1,0 +1,266 @@
+name: Apply mobile v27
+
+on:
+  push:
+    paths:
+      - '.github/workflows/apply-v27.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  update-app:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply v27 patch
+        shell: bash
+        run: |
+          cat > /tmp/v27.patch <<'PATCH'
+          --- a/index.html
+          +++ b/index.html
+          @@ -4,7 +4,7 @@
+           <meta charset="utf-8">
+           <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+           <meta name="theme-color" content="#081522">
+          -<title>GTVI 26 Weather App · Mobile v21</title>
+          +<title>GTVI 26 Weather App · Mobile v27</title>
+           <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+           <style>
+           :root {
+          @@ -375,6 +375,33 @@
+           .agree{font-size:9px;padding:6px 8px;white-space:normal;text-align:center;line-height:1.15;max-width:126px}
+           
+           .mobileRouteCopy{min-width:0}
+          +.consensusStack{
+          +  flex:0 0 132px;
+          +  display:flex;
+          +  flex-direction:column;
+          +  align-items:stretch;
+          +  gap:4px;
+          +}
+          +.consensusStack .agree{
+          +  max-width:none;
+          +  width:100%;
+          +  box-sizing:border-box;
+          +}
+          +.consensusHint{
+          +  margin:0;
+          +  font-size:8.5px;
+          +  line-height:1.25;
+          +  color:#7891a6;
+          +  text-align:center;
+          +}
+          +.mobileWayTitle{
+          +  line-height:1.35;
+          +}
+          +.mobileWayTitle .wayTimingInline{
+          +  font-weight:400;
+          +  font-size:9.5px;
+          +  color:#7891a6;
+          +}
+           .mobileSunCompact{
+             display:flex;
+             align-items:center;
+          @@ -667,6 +694,8 @@
+             .day b{font-size:9px}
+             .day span{font-size:7px}
+             .mobileRouteHead h1{font-size:19px}
+          +  .consensusStack{flex-basis:122px}
+          +  .consensusHint{font-size:8px}
+             .mobileControlRow{gap:6px}
+             .mobileStepper{grid-template-columns:30px minmax(0,1fr) 30px}
+             .mobileStats{gap:3px}
+          @@ -806,6 +835,53 @@
+             border-bottom:0;
+           }
+           .riskRowFull{grid-column:1/-1}
+          +
+          +.aboutForecast{
+          +  margin-top:10px;
+          +  border:1px solid #213f59;
+          +  border-radius:12px;
+          +  background:#0f2437;
+          +  overflow:hidden;
+          +}
+          +.aboutForecast>summary{
+          +  cursor:pointer;
+          +  list-style:none;
+          +  padding:11px 12px;
+          +  font-size:11px;
+          +  font-weight:800;
+          +  color:#dbe9f4;
+          +  display:flex;
+          +  align-items:center;
+          +  justify-content:space-between;
+          +  gap:8px;
+          +}
+          +.aboutForecast>summary::-webkit-details-marker{display:none}
+          +.aboutForecast>summary::after{
+          +  content:"+";
+          +  font-size:16px;
+          +  line-height:1;
+          +  color:#8eabc1;
+          +}
+          +.aboutForecast[open]>summary::after{content:"−"}
+          +.aboutForecastBody{
+          +  border-top:1px solid #213f59;
+          +  padding:10px 12px 12px;
+          +  font-size:10px;
+          +  line-height:1.45;
+          +  color:#9bb1c2;
+          +}
+          +.aboutForecastBody p{margin:0 0 8px}
+          +.aboutForecastBody ul{
+          +  margin:0 0 8px 17px;
+          +  padding:0;
+          +}
+          +.aboutForecastBody li{margin:0 0 7px}
+          +.aboutForecastBody b{color:#dbe9f4}
+          +.aboutForecastFoot{
+          +  margin-bottom:0!important;
+          +  color:#7891a6;
+          +  font-size:9.5px;
+          +}
+           </style>
+           </head>
+           <body>
+          @@ -831,7 +907,10 @@
+                   <span>◐ <b id="sunEndSet">—</b></span>
+                 </div>
+               </div>
+          -    <span id="agreement" class="agree medium">Loading</span>
+          +    <div class="consensusStack">
+          +      <span id="agreement" class="agree medium">Loading</span>
+          +      <div class="consensusHint">Confidence improves as the ride day approaches — refresh regularly.</div>
+          +    </div>
+             </div>
+           
+             <div id="outlook" class="outlook">Loading forecast…</div>
+          @@ -969,7 +1048,7 @@
+             </details>
+           </section>
+           
+          -<div class="sectionTitle mobileWayTitle">Weather along the way</div>
+          +<div class="sectionTitle mobileWayTitle"><strong>Weather along the way -</strong> <span class="wayTimingInline">Timed to your ride plan. Weather is matched to where you’re expected to be based on start time, speed and stops selected in Ride Plan.</span></div>
+           
+           <div id="timeline" class="timeline"><div class="stop">Loading…</div></div>
+           
+          @@ -982,9 +1061,20 @@
+             </div>
+           </details>
+           
+          -<div class="notice">
+          -  Forecast times use your selected <b>start time + average moving speed + planned stops</b>, with Komoot's climb/descent pacing retained. The headline shows a <b>range of possible forecasts</b>; the point-by-point view compares three independent forecasts. High/Medium/Low means <b>forecast consensus</b>, not good/bad weather. The route itself is embedded in this file; weather and map tiles require internet access.
+          -</div>
+          +<details class="aboutForecast">
+          +  <summary>About this forecast</summary>
+          +  <div class="aboutForecastBody">
+          +    <p>This app is designed for the Vienna–Pula ride and combines several weather forecasts with the planned route and timing.</p>
+          +    <ul>
+          +      <li><b>Forecast consensus</b> shows how closely the main forecasts agree. It is a guide to confidence, not an official probability.</li>
+          +      <li><b>Range of possibilities</b> shows the broader spread of likely conditions, using ensemble forecasting to highlight uncertainty.</li>
+          +      <li><b>Weather along the way</b> is matched to your expected position on the route, based on your start time, riding speed and planned stops.</li>
+          +      <li>Changing the <b>Ride plan</b> changes the point-by-point weather timing, but does not change the overall daily forecast consensus.</li>
+          +      <li>Forecasts become more reliable as the ride day approaches, so refresh the app regularly and check again before setting off.</li>
+          +    </ul>
+          +    <p class="aboutForecastFoot">The route is embedded in the app; live weather data and map tiles require an internet connection.</p>
+          +  </div>
+          +</details>
+           </div>
+           
+           <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+          @@ -1196,20 +1286,67 @@
+            }).catch(e=>{delete pending[key];throw e});
+            return pending[key];
+           }
+          +function usableEnsemblePayload(data){
+          + const d=arr(data);
+          + if(!Array.isArray(d)||!d.length)return false;
+          + const h=d[0]?.hourly;
+          + if(!h)return false;
+          + const keys=Object.keys(h);
+          + const memberCount=base=>keys.filter(k=>k.startsWith(base+"_member")).length;
+          + return memberCount("temperature_2m")>=10 &&
+          +        memberCount("wind_speed_10m")>=10 &&
+          +        memberCount("wind_gusts_10m")>=10 &&
+          +        memberCount("precipitation")>=10;
+          +}
+           async function fetchEnsemble(s,force=false){
+            const key=s.key;
+            if(force){delete ensembleCache[key];delete ensemblePending[key]}
+            if(ensembleCache[key])return ensembleCache[key];
+            if(ensemblePending[key])return ensemblePending[key];
+          - const lat=s.samples.map(p=>p.lat).join(","),lon=s.samples.map(p=>p.lon).join(","),elevation=s.samples.map(p=>p.ele).join(",");
+          +
+          + const lat=s.samples.map(p=>p.lat).join(","),
+          +       lon=s.samples.map(p=>p.lon).join(","),
+          +       elevation=s.samples.map(p=>p.ele).join(",");
+            const end=addDaysISO(s.date,1);
+          - const url=`https://ensemble-api.open-meteo.com/v1/ensemble?latitude=${lat}&longitude=${lon}&elevation=${elevation}&hourly=temperature_2m,precipitation,wind_speed_10m,wind_gusts_10m&models=ecmwf_ifs_europe_ensemble&timezone=Europe%2FVienna&start_date=${s.date}&end_date=${end}`;
+          - ensemblePending[key]=fetch(url).then(r=>{
+          -   if(!r.ok)throw new Error("Ensemble "+r.status);
+          -   return r.json();
+          - }).then(data=>{
+          -   const result=arr(data);ensembleCache[key]=result;delete ensemblePending[key];return result;
+          - }).catch(e=>{delete ensemblePending[key];throw e});
+          +
+          + // Prefer the native 9 km ECMWF Europe ensemble, but automatically
+          + // fall back to the globally available ECMWF ensemble and then GEFS.
+          + // This keeps Range of possibilities working if a regional feed is
+          + // temporarily unavailable or does not expose every requested field.
+          + const models=[
+          +   "ecmwf_ifs_europe_ensemble",
+          +   "ecmwf_ifs025_ensemble",
+          +   "ncep_gefs025"
+          + ];
+          +
+          + ensemblePending[key]=(async()=>{
+          +   let lastError=null;
+          +   for(const model of models){
+          +     const url=`https://ensemble-api.open-meteo.com/v1/ensemble?latitude=${lat}&longitude=${lon}&elevation=${elevation}&hourly=temperature_2m,precipitation,wind_speed_10m,wind_gusts_10m&models=${model}&timezone=Europe%2FVienna&start_date=${s.date}&end_date=${end}`;
+          +     try{
+          +       const r=await fetch(url);
+          +       if(!r.ok){
+          +         lastError=new Error(`Ensemble ${model} ${r.status}`);
+          +         continue;
+          +       }
+          +       const data=await r.json();
+          +       if(!usableEnsemblePayload(data)){
+          +         lastError=new Error(`Ensemble ${model} returned incomplete member data`);
+          +         continue;
+          +       }
+          +       const result=arr(data);
+          +       result._ensembleModel=model;
+          +       ensembleCache[key]=result;
+          +       delete ensemblePending[key];
+          +       return result;
+          +     }catch(e){
+          +       lastError=e;
+          +     }
+          +   }
+          +   delete ensemblePending[key];
+          +   throw lastError||new Error("No ensemble source available");
+          + })();
+          +
+            return ensemblePending[key];
+           }
+           function row(result,idx,p,s){
+          @@ -1316,8 +1453,8 @@
+            if(!risk){
+              box.innerHTML=`<div class="riskRow riskRowFull">
+                <div class="riskRowTitle">Range</div>
+          -     <div class="riskMain">Ensemble temporarily unavailable</div>
+          -     <div class="riskDetail">The individual ECMWF / ICON / GFS forecasts are still available below.</div>
+          +     <div class="riskMain">Range temporarily unavailable</div>
+          +     <div class="riskDetail">The individual ECMWF / ICON / GFS forecasts are still available below. Try Refresh shortly.</div>
+              </div>`;
+              return;
+            }
+          PATCH
+          git apply /tmp/v27.patch
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Update weather app to mobile v27"
+          git push
