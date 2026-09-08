@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#081522">
-<title>GTVI 26 Weather App · Mobile v29</title>
+<title>GTVI 26 Weather App · Mobile v33</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
 :root {
@@ -500,6 +500,38 @@ header{align-items:center;margin-bottom:8px}
 .mobileStat span{display:block;font-size:8px;text-transform:uppercase;letter-spacing:.04em;color:#829caf;margin-top:4px}
 .mobileEta{border:1px solid #3f729b}
 
+.appTitleCycling{
+  display:flex;
+  align-items:center;
+  gap:7px;
+}
+.titleBike{
+  width:28px;
+  height:18px;
+  flex:0 0 auto;
+  stroke:#58b7f4;
+  stroke-width:2.4;
+  fill:none;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+.mobileStopField{
+  min-width:0;
+}
+.mobileStopFieldLabel{
+  margin:0 0 4px 2px;
+  font-size:8px;
+  line-height:1;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  font-weight:800;
+  color:#829caf;
+}
+.mobileStopFieldLabel span{
+  text-transform:none;
+  letter-spacing:0;
+  font-weight:700;
+}
 .mobileStops{display:flex;flex-direction:column;gap:6px}
 .mobileStopRow{
   display:grid;
@@ -630,7 +662,44 @@ header{align-items:center;margin-bottom:8px}
   justify-content:center;
   min-width:0;
 }
-.clearSun{color:#ffd84d;font-family:Arial,sans-serif;font-weight:700}
+.wxClear,.wxMostlyClear{
+  position:relative;
+  display:inline-block;
+  width:28px;
+  height:28px;
+  vertical-align:middle;
+}
+.wxSunDisc{
+  position:absolute;
+  left:7px;
+  top:7px;
+  width:14px;
+  height:14px;
+  border-radius:50%;
+  background:#ffd84d;
+  box-shadow:
+    0 -10px 0 -6px #ffd84d,
+    0 10px 0 -6px #ffd84d,
+    10px 0 0 -6px #ffd84d,
+    -10px 0 0 -6px #ffd84d,
+    7px 7px 0 -6px #ffd84d,
+    -7px -7px 0 -6px #ffd84d,
+    7px -7px 0 -6px #ffd84d,
+    -7px 7px 0 -6px #ffd84d;
+}
+.wxCloudPuff{
+  position:absolute;
+  right:1px;
+  bottom:3px;
+  width:15px;
+  height:8px;
+  border-radius:8px;
+  background:#e8f1f8;
+  box-shadow:
+    -5px 1px 0 1px #e8f1f8,
+    -1px -4px 0 -1px #e8f1f8;
+  border:1px solid rgba(8,21,34,.22);
+}
 .wxIcon{
   grid-column:auto!important;
   grid-row:auto!important;
@@ -703,6 +772,7 @@ details.modelDetail summary{font-size:9px}
   .mobileStat b{font-size:11px}
   .mobileStopRow{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px 7px;padding:8px}
   .mobileStopName{font-size:10px}
+  .mobileStopFieldLabel{font-size:7.5px}
   .mobileStopCtl{grid-template-columns:34px minmax(44px,1fr) 34px;gap:4px}
   .mobileStopCtl .miniBtn{height:35px!important;min-width:34px}
   .mobileStopCtl .miniValue{height:35px;font-size:11px}
@@ -887,7 +957,16 @@ details.modelDetail summary{font-size:9px}
 </head>
 <body>
 <div class="app">
-<div class="appTitle">GTVI 26 Weather App <span style="font-size:11px;color:#7891a6;font-weight:700">Mobile</span></div>
+<div class="appTitle appTitleCycling">
+  <svg class="titleBike" viewBox="0 0 64 36" aria-hidden="true">
+    <circle cx="14" cy="25" r="8"></circle>
+    <circle cx="50" cy="25" r="8"></circle>
+    <path d="M14 25 L25 10 L34 25 L20 25 L28 14 L40 14 L50 25"></path>
+    <path d="M25 10 L21 7 M40 14 L44 8 M42 8 L48 8"></path>
+  </svg>
+  <span>GTVI 26 Weather App</span>
+  <span style="font-size:11px;color:#7891a6;font-weight:700">Mobile</span>
+</div>
 <header>
   <div class="brand">Vienna → Pula <small>Route weather · 12–18 Sep 2026</small></div>
   <button id="refresh" class="refresh">↻ Refresh</button>
@@ -946,7 +1025,7 @@ details.modelDetail summary{font-size:9px}
   </div>
 
   <details class="mobileRiskDisclosure">
-    <summary>Range of possibilities</summary>
+    <summary>Forecast spread</summary>
     <div class="forecastSources">
       <div><span>Forecasts compared</span> ECMWF IFS · DWD ICON · NOAA GFS</div>
       <div><span>Range</span> ECMWF ensemble</div>
@@ -995,16 +1074,21 @@ details.modelDetail summary{font-size:9px}
     <div class="mobileStops">
       <div class="mobileStopRow">
         <div class="mobileStopName">☕ Morning coffee</div>
-        <div class="mobileStopCtl">
-          <span class="mobileTiny">at</span>
-          <button class="miniBtn" type="button" data-stop="morning" data-field="km" data-delta="-5">‹</button>
-          <div class="miniValue" id="morningKm">—</div>
-          <button class="miniBtn" type="button" data-stop="morning" data-field="km" data-delta="5">›</button>
+        <div class="mobileStopField">
+          <div class="mobileStopFieldLabel">At</div>
+          <div class="mobileStopCtl">
+            <button class="miniBtn" type="button" data-stop="morning" data-field="km" data-delta="-5">‹</button>
+            <div class="miniValue" id="morningKm">—</div>
+            <button class="miniBtn" type="button" data-stop="morning" data-field="km" data-delta="5">›</button>
+          </div>
         </div>
-        <div class="mobileStopCtl">
-          <button class="miniBtn" type="button" data-stop="morning" data-field="min" data-delta="-5">‹</button>
-          <div class="miniValue" id="morningMin">—</div>
-          <button class="miniBtn" type="button" data-stop="morning" data-field="min" data-delta="5">›</button>
+        <div class="mobileStopField">
+          <div class="mobileStopFieldLabel">For</div>
+          <div class="mobileStopCtl">
+            <button class="miniBtn" type="button" data-stop="morning" data-field="min" data-delta="-5">‹</button>
+            <div class="miniValue" id="morningMin">—</div>
+            <button class="miniBtn" type="button" data-stop="morning" data-field="min" data-delta="5">›</button>
+          </div>
         </div>
       </div>
 
@@ -1016,31 +1100,41 @@ details.modelDetail summary{font-size:9px}
             <button id="lunchModeTime" class="modeBtn" type="button" data-lunch-mode="time">Time</button>
           </div>
         </div>
-        <div class="mobileStopCtl">
-          <span class="mobileTiny" id="lunchAtLabel">Distance</span>
-          <button class="miniBtn" type="button" data-lunch-at="-1">‹</button>
-          <div class="miniValue" id="lunchKm">—</div>
-          <button class="miniBtn" type="button" data-lunch-at="1">›</button>
+        <div class="mobileStopField">
+          <div class="mobileStopFieldLabel">At <span id="lunchAtLabel">distance</span></div>
+          <div class="mobileStopCtl">
+            <button class="miniBtn" type="button" data-lunch-at="-1">‹</button>
+            <div class="miniValue" id="lunchKm">—</div>
+            <button class="miniBtn" type="button" data-lunch-at="1">›</button>
+          </div>
         </div>
-        <div class="mobileStopCtl">
-          <button class="miniBtn" type="button" data-stop="lunch" data-field="min" data-delta="-5">‹</button>
-          <div class="miniValue" id="lunchMin">—</div>
-          <button class="miniBtn" type="button" data-stop="lunch" data-field="min" data-delta="5">›</button>
+        <div class="mobileStopField">
+          <div class="mobileStopFieldLabel">For</div>
+          <div class="mobileStopCtl">
+            <button class="miniBtn" type="button" data-stop="lunch" data-field="min" data-delta="-5">‹</button>
+            <div class="miniValue" id="lunchMin">—</div>
+            <button class="miniBtn" type="button" data-stop="lunch" data-field="min" data-delta="5">›</button>
+          </div>
         </div>
       </div>
 
       <div class="mobileStopRow">
         <div class="mobileStopName">☕ Afternoon coffee</div>
-        <div class="mobileStopCtl">
-          <span class="mobileTiny">at</span>
-          <button class="miniBtn" type="button" data-stop="afternoon" data-field="km" data-delta="-5">‹</button>
-          <div class="miniValue" id="afternoonKm">—</div>
-          <button class="miniBtn" type="button" data-stop="afternoon" data-field="km" data-delta="5">›</button>
+        <div class="mobileStopField">
+          <div class="mobileStopFieldLabel">At</div>
+          <div class="mobileStopCtl">
+            <button class="miniBtn" type="button" data-stop="afternoon" data-field="km" data-delta="-5">‹</button>
+            <div class="miniValue" id="afternoonKm">—</div>
+            <button class="miniBtn" type="button" data-stop="afternoon" data-field="km" data-delta="5">›</button>
+          </div>
         </div>
-        <div class="mobileStopCtl">
-          <button class="miniBtn" type="button" data-stop="afternoon" data-field="min" data-delta="-5">‹</button>
-          <div class="miniValue" id="afternoonMin">—</div>
-          <button class="miniBtn" type="button" data-stop="afternoon" data-field="min" data-delta="5">›</button>
+        <div class="mobileStopField">
+          <div class="mobileStopFieldLabel">For</div>
+          <div class="mobileStopCtl">
+            <button class="miniBtn" type="button" data-stop="afternoon" data-field="min" data-delta="-5">‹</button>
+            <div class="miniValue" id="afternoonMin">—</div>
+            <button class="miniBtn" type="button" data-stop="afternoon" data-field="min" data-delta="5">›</button>
+          </div>
         </div>
       </div>
     </div>
@@ -1068,7 +1162,7 @@ details.modelDetail summary{font-size:9px}
     <p>This app is designed for the Vienna–Pula ride and combines several weather forecasts with the planned route and timing.</p>
     <ul>
       <li><b>Forecast consensus</b> shows how closely the main forecasts agree. It is a guide to confidence, not an official probability.</li>
-      <li><b>Range of possibilities</b> shows the broader spread of likely conditions, using ensemble forecasting to highlight uncertainty.</li>
+      <li><b>Forecast spread</b> shows the broader spread of likely conditions, using ensemble forecasting to highlight uncertainty.</li>
       <li><b>Weather along the way</b> is matched to your expected position on the route, based on your start time, riding speed and planned stops.</li>
       <li>Changing the <b>Ride plan</b> changes the point-by-point weather timing, but does not change the overall daily forecast consensus.</li>
       <li>Forecasts become more reliable as the ride day approaches, so refresh the app regularly and check again before setting off.</li>
@@ -1091,7 +1185,7 @@ const DAY_KEYS=["D1","D2","D3","D4","D5A","D5B","D6","D7"];
 let activeKey="D1", cache={}, pending={}, ensembleCache={}, ensemblePending={}, sunCache={}, sunPending={}, map=null, lineLayer=null, markerLayer=null, renderToken=0, avgSpeed=20, stopPlans={};
 
 const WDESC={0:"Clear",1:"Mostly clear",2:"Partly cloudy",3:"Cloudy",45:"Fog",48:"Fog",51:"Drizzle",53:"Drizzle",55:"Drizzle",61:"Light rain",63:"Rain",65:"Heavy rain",80:"Showers",81:"Showers",82:"Heavy showers",95:"Thunderstorms",96:"Thunderstorms",99:"Thunderstorms"};
-const WICON=c=>c>=95?"⛈️":c>=80?"🌦️":c>=61?"🌧️":c>=51?"🌦️":c>=45?"🌫️":c===0?'<span class="clearSun">☀</span>':c<=2?"🌤️":"☁️";
+const WICON=c=>c>=95?"⛈️":c>=80?"🌦️":c>=61?"🌧️":c>=51?"🌦️":c>=45?"🌫️":c===0?'<span class="wxClear"><span class="wxSunDisc"></span></span>':c<=2?'<span class="wxMostlyClear"><span class="wxSunDisc"></span><span class="wxCloudPuff"></span></span>':"☁️";
 
 function stage(key=activeKey){return ROUTES[key]}
 
@@ -1152,7 +1246,7 @@ function updateBreakUI(s=stage()){
  document.getElementById("afternoonMin").textContent=st.afternoon.min+" min";
  document.getElementById("lunchMin").textContent=st.lunch.min+" min";
  document.getElementById("lunchKm").textContent=st.lunch.mode==="time"?st.lunch.time:st.lunch.km+" km";
- document.getElementById("lunchAtLabel").textContent=st.lunch.mode==="time"?"Lunch time":"Distance from start";
+ document.getElementById("lunchAtLabel").textContent=st.lunch.mode==="time"?"time":"distance";
  document.getElementById("lunchModeDistance").classList.toggle("active",st.lunch.mode==="distance");
  document.getElementById("lunchModeTime").classList.toggle("active",st.lunch.mode==="time");
  const plannedTotal=Object.values(st).reduce((a,x)=>a+(x.min||0),0);
@@ -1275,17 +1369,50 @@ async function fetchSource(src,s){
  const r=await fetch(url);if(!r.ok)throw new Error(src.label+" "+r.status);
  return arr(await r.json());
 }
-async function fetchAll(s,force=false){
+function getStageBucket(root,key){
+ return root[key]||(root[key]={});
+}
+async function fetchOne(src,s,force=false){
+ const key=s.key;
+ const stageCache=getStageBucket(cache,key);
+ const stagePending=getStageBucket(pending,key);
+ if(force){delete stageCache[src.id];delete stagePending[src.id]}
+ if(stageCache[src.id])return stageCache[src.id];
+ if(stagePending[src.id])return stagePending[src.id];
+ stagePending[src.id]=fetchSource(src,s)
+   .then(data=>({src,data,ok:true}))
+   .catch(error=>({src,error,ok:false}))
+   .then(result=>{
+     stageCache[src.id]=result;
+     delete stagePending[src.id];
+     return result;
+   });
+ return stagePending[src.id];
+}
+function fetchedResults(s){
+ const stageCache=cache[s.key]||{};
+ return [...MODELS,BEST].map(src=>stageCache[src.id]).filter(Boolean);
+}
+function isResultPending(s,id){
+ return !!(pending[s.key]&&pending[s.key][id]);
+}
+function anyDeterministicPending(s){
+ return [...MODELS,BEST].some(src=>isResultPending(s,src.id));
+}
+async function fetchAllProgressive(s,force=false,onUpdate=null){
  const key=s.key;
  if(force){delete cache[key];delete pending[key]}
- if(cache[key])return cache[key];
- if(pending[key])return pending[key];
- pending[key]=Promise.all([...MODELS,BEST].map(src=>
-   fetchSource(src,s).then(data=>({src,data,ok:true})).catch(error=>({src,error,ok:false}))
- )).then(results=>{
-   cache[key]=results;delete pending[key];return results;
- }).catch(e=>{delete pending[key];throw e});
- return pending[key];
+ getStageBucket(cache,key);
+ getStageBucket(pending,key);
+ if(onUpdate)onUpdate(fetchedResults(s),null);
+ const jobs=[...MODELS,BEST].map(src=>
+   fetchOne(src,s,false).then(result=>{
+     if(onUpdate)onUpdate(fetchedResults(s),result);
+     return result;
+   })
+ );
+ await Promise.all(jobs);
+ return fetchedResults(s);
 }
 function usableEnsemblePayload(data){
  const d=arr(data);
@@ -1569,92 +1696,160 @@ function baseUI(s){
  updateBreakUI(s);
  resetSunTimes(s);
 }
-async function showWeather(s,force,token){
- try{
-   const deterministicPromise=fetchAll(s,force);
-   const ensemblePromise=fetchEnsemble(s,force).catch(()=>null);
-   const sunPromise=fetchSunTimes(s,force).catch(()=>null);
-   const results=await deterministicPromise;
-   if(token!==renderToken || s!==stage())return;
-   const sunData=await sunPromise;
-   if(token!==renderToken || s!==stage())return;
-   if(sunData)renderSunTimes(sunData,s);
-   const bestRes=results.find(x=>x.src.id==="best");
-   const bundles=s.samples.map((p,i)=>{
-     const forecasts=MODELS.map(md=>row(results.find(x=>x.src.id===md.id),i,p,s));
-     const best=row(bestRes,i,p,s);
-     return {p,forecasts,best,conf:confidence(forecasts,s.date)};
-   });
-   const consensusBundles=s.samples.map((p,i)=>{
-     const forecasts=MODELS.map(md=>consensusRow(results.find(x=>x.src.id===md.id),i,p,s));
-     const best=consensusRow(bestRes,i,p,s);
-     return {p,forecasts,best,conf:confidence(forecasts,s.date)};
-   });
-   const sm=summarize(bundles);
-   const consensusSm=summarize(consensusBundles);
-   if(!sm){
-     const anySuccess=results.some(x=>x.ok);
-     throw new Error(anySuccess?"Forecast is not yet in range.":"Weather services did not respond.");
-   }
-   const headlineConsensus=consensusSm?.overall||sm.overall;
-   const ag=document.getElementById("agreement");ag.className="agree "+headlineConsensus;ag.textContent=headlineConsensus.charAt(0).toUpperCase()+headlineConsensus.slice(1)+" forecast consensus";
-   document.getElementById("outlook").textContent=sm.phrase;
-   let reason=headlineConsensus==="high"?"The main forecasts tell a similar story along the route.":headlineConsensus==="medium"?"":"";
-   document.getElementById("explain").textContent=reason;
-   document.getElementById("mTemp").textContent=`${sm.tmin}–${sm.tmax}°`;
-   document.getElementById("mSkyIcon").textContent=sm.sky.icon;
-   document.getElementById("mSkySub").textContent=sm.sky.label;
-   document.getElementById("mRain").textContent=sm.rp===null?"—":sm.rp+"%";
-   document.getElementById("mWind").textContent="Loading…";
-   document.getElementById("mRainSub").textContent="forecast probability";
-   document.getElementById("mWindSub").textContent="calculating likely wind + gust range";
-   const ensembleData=await ensemblePromise;
-   if(token!==renderToken || s!==stage())return;
-   renderEnsembleRisk(ensembleStageRisk(ensembleData,s),sm.gmax);
-   document.getElementById("timeline").innerHTML=bundles.map(b=>{
-      const rs=b.forecasts.filter(Boolean), disp=rs[0]||b.best;
-      if(!disp)return `<div class="stop"><div class="stopPlace">${b.p.label}</div><div class="stopMeta">${b.p.km} km · ${b.p.ele} m · ~${rideClock(b.p.ride_h,s,b.p.km)}</div><div class="risk">Forecast not yet in range</div></div>`;
-      const temps=rs.map(x=>x.temp).filter(Number.isFinite), meanT=temps.length?Math.round(temps.reduce((a,c)=>a+c,0)/temps.length):Math.round(disp.temp);
-      const wetN=rs.filter(wet).length, code=rs.some(x=>x.code>=95)?95:wetN?80:disp.code;
-      const prob=b.best?.rain;
-      const winds=rs.map(x=>x.wind).filter(Number.isFinite);
-      const gusts=rs.map(x=>x.gust).filter(Number.isFinite);
-      const wind=Math.round(winds.length?winds.reduce((a,c)=>a+c,0)/winds.length:0);
-      const gust=Math.round(gusts.length?gusts.reduce((a,c)=>a+c,0)/gusts.length:0);
-      const cond=rs.some(x=>x.code>=95)?"Thunder":wetN>=2?"Rain/showers":wetN===1?"Possible shower":WDESC[code]||"Dry";
-      const cclass=rs.some(x=>x.code>=95)?"danger":wetN>=2?"rainWet":"";
-      const detail=MODELS.map(md=>{
-         const r=b.forecasts.find(x=>x&&x.source.id===md.id);
-         return r?`<div class="modelRow"><b>${md.label}</b><span>${Math.round(r.temp)}°</span><span>${r.precip.toFixed(1)} mm/h</span><span>${Math.round(r.wind)} / ${Math.round(r.gust)} km/h</span></div>`:`<div class="modelRow"><b>${md.label}</b><span>—</span><span>not in range</span><span>—</span></div>`;
-      }).join("");
-      return `<div class="stop">
-        <div class="stopMain">
-          <div><div class="stopPlace"><span class="stopName">${b.p.label==="Start"?s.start:b.p.label==="Finish"?s.finish:b.p.label}</span></div><div class="stopMeta">${b.p.km} km · ${b.p.ele} m · ~${rideClock(b.p.ride_h,s,b.p.km)}</div></div>
-          <div class="pointWeather">
-            <div class="pointCondition">
-              <div class="wxIcon" aria-hidden="true">${WICON(code)}</div>
-              <div class="conditionText">${cond}</div>
+function buildBundlesFromResults(results,s,useConsensus=false){
+ const bestRes=results.find(x=>x.src.id==="best");
+ const pick=useConsensus?consensusRow:row;
+ return s.samples.map((p,i)=>{
+   const forecasts=MODELS.map(md=>pick(results.find(x=>x.src.id===md.id),i,p,s));
+   const best=pick(bestRes,i,p,s);
+   return {p,forecasts,best,conf:confidence(forecasts,s.date)};
+ });
+}
+function renderTimelineFromBundles(bundles,s){
+ const stillLoading=anyDeterministicPending(s);
+ document.getElementById("timeline").innerHTML=bundles.map(b=>{
+    const rs=b.forecasts.filter(Boolean), disp=rs[0]||b.best;
+    if(!disp){
+      const status=stillLoading?"Loading forecast…":"Forecast not yet in range";
+      return `<div class="stop"><div class="stopPlace">${b.p.label==="Start"?s.start:b.p.label==="Finish"?s.finish:b.p.label}</div><div class="stopMeta">${b.p.km} km · ${b.p.ele} m · ~${rideClock(b.p.ride_h,s,b.p.km)}</div><div class="risk">${status}</div></div>`;
+    }
+    const temps=rs.map(x=>x.temp).filter(Number.isFinite), meanT=temps.length?Math.round(temps.reduce((a,c)=>a+c,0)/temps.length):Math.round(disp.temp);
+    const wetN=rs.filter(wet).length, code=rs.some(x=>x.code>=95)?95:wetN?80:disp.code;
+    const prob=b.best?.rain;
+    const winds=rs.map(x=>x.wind).filter(Number.isFinite);
+    const gusts=rs.map(x=>x.gust).filter(Number.isFinite);
+    const wind=Math.round(winds.length?winds.reduce((a,c)=>a+c,0)/winds.length:0);
+    const gust=Math.round(gusts.length?gusts.reduce((a,c)=>a+c,0)/gusts.length:0);
+    const cond=rs.some(x=>x.code>=95)?"Thunder":wetN>=2?"Rain/showers":wetN===1?"Possible shower":WDESC[code]||"Dry";
+    const cclass=rs.some(x=>x.code>=95)?"danger":wetN>=2?"rainWet":"";
+    const detail=MODELS.map(md=>{
+       const r=b.forecasts.find(x=>x&&x.source.id===md.id);
+       if(r)return `<div class="modelRow"><b>${md.label}</b><span>${Math.round(r.temp)}°</span><span>${r.precip.toFixed(1)} mm/h</span><span>${Math.round(r.wind)} / ${Math.round(r.gust)} km/h</span></div>`;
+       if(isResultPending(s,md.id))return `<div class="modelRow"><b>${md.label}</b><span>…</span><span>loading…</span><span>…</span></div>`;
+       return `<div class="modelRow"><b>${md.label}</b><span>—</span><span>not in range</span><span>—</span></div>`;
+    }).join("");
+    return `<div class="stop">
+      <div class="stopMain">
+        <div><div class="stopPlace"><span class="stopName">${b.p.label==="Start"?s.start:b.p.label==="Finish"?s.finish:b.p.label}</span></div><div class="stopMeta">${b.p.km} km · ${b.p.ele} m · ~${rideClock(b.p.ride_h,s,b.p.km)}</div></div>
+        <div class="pointWeather">
+          <div class="pointCondition">
+            <div class="wxIcon" aria-hidden="true">${WICON(code)}</div>
+            <div class="conditionText">${cond}</div>
+          </div>
+          <div class="pointMetrics">
+            <div class="pointMetricRow">
+              <span class="pointMetricLabel">Temp</span>
+              <span class="pointMetricValue">${meanT}°</span>
             </div>
-            <div class="pointMetrics">
-              <div class="pointMetricRow">
-                <span class="pointMetricLabel">Temp</span>
-                <span class="pointMetricValue">${meanT}°</span>
-              </div>
-              <div class="pointMetricRow">
-                <span class="pointMetricLabel">Rain</span>
-                <span class="pointMetricValue ${cclass}">${prob==null?"—":Math.round(prob)+"%"}</span>
-              </div>
-              <div class="pointMetricRow">
-                <span class="pointMetricLabel">Wind</span>
-                <span class="pointMetricValue">${wind} km/h</span>
-              </div>
-              <div class="pointGust">gust ${gust} km/h</div>
+            <div class="pointMetricRow">
+              <span class="pointMetricLabel">Rain</span>
+              <span class="pointMetricValue ${cclass}">${prob==null?"—":Math.round(prob)+"%"}</span>
             </div>
+            <div class="pointMetricRow">
+              <span class="pointMetricLabel">Wind</span>
+              <span class="pointMetricValue">${wind} km/h</span>
+            </div>
+            <div class="pointGust">gust ${gust} km/h</div>
           </div>
         </div>
-        <details><summary>${b.conf.label.replace(" forecast consensus"," consensus")} · show forecast detail</summary><div class="modelGrid">${detail}</div></details>
-      </div>`;
-   }).join("");
+      </div>
+      <details><summary>${b.conf.label.replace(" forecast consensus"," consensus")} · show forecast detail</summary><div class="modelGrid">${detail}</div></details>
+    </div>`;
+ }).join("");
+}
+function renderDeterministicResults(results,s,token,ensembleState){
+ if(token!==renderToken || s!==stage())return {sm:null,error:null};
+
+ const bundles=buildBundlesFromResults(results,s,false);
+ const sm=summarize(bundles);
+ if(!sm){
+   if(anyDeterministicPending(s))return {sm:null,error:null};
+   const anySuccess=results.some(x=>x.ok);
+   return {sm:null,error:new Error(anySuccess?"Forecast is not yet in range.":"Weather services did not respond.")};
+ }
+
+ const consensusBundles=buildBundlesFromResults(results,s,true);
+ const consensusSm=summarize(consensusBundles);
+ const loadedModels=results.filter(x=>x.ok && x.src.id!=="best").length;
+
+ const ag=document.getElementById("agreement");
+ if(loadedModels>=2){
+   const headlineConsensus=consensusSm?.overall||sm.overall;
+   ag.className="agree "+headlineConsensus;
+   ag.textContent=headlineConsensus.charAt(0).toUpperCase()+headlineConsensus.slice(1)+" forecast consensus";
+   document.getElementById("explain").textContent=headlineConsensus==="high"?"The main forecasts tell a similar story along the route.":"";
+ }else{
+   ag.className="agree medium";
+   ag.textContent="Loading forecast consensus";
+   document.getElementById("explain").textContent="";
+ }
+
+ document.getElementById("outlook").textContent=sm.phrase;
+ document.getElementById("mTemp").textContent=`${sm.tmin}–${sm.tmax}°`;
+ document.getElementById("mSkyIcon").innerHTML=sm.sky.icon;
+ document.getElementById("mSkySub").textContent=sm.sky.label;
+ document.getElementById("mRain").textContent=sm.rp===null?"—":sm.rp+"%";
+ document.getElementById("mRainSub").textContent="forecast probability";
+
+ if(ensembleState.resolved){
+   renderEnsembleRisk(ensembleStageRisk(ensembleState.data,s),sm.gmax);
+ }else{
+   document.getElementById("mWind").textContent="Loading…";
+   document.getElementById("mWindSub").textContent="calculating likely wind + gust range";
+ }
+
+ renderTimelineFromBundles(bundles,s);
+ return {sm,error:null};
+}
+async function showWeather(s,force,token){
+ try{
+   const ensembleState={resolved:false,data:null};
+   let lastSm=null;
+   let lastError=null;
+
+   const sunPromise=fetchSunTimes(s,force)
+     .then(data=>{
+       if(token!==renderToken || s!==stage())return null;
+       if(data)renderSunTimes(data,s);
+       return data;
+     })
+     .catch(()=>null);
+
+   const ensemblePromise=fetchEnsemble(s,force)
+     .then(data=>{
+       ensembleState.resolved=true;
+       ensembleState.data=data;
+       if(token!==renderToken || s!==stage())return data;
+       if(lastSm)renderEnsembleRisk(ensembleStageRisk(data,s),lastSm.gmax);
+       return data;
+     })
+     .catch(()=>{
+       ensembleState.resolved=true;
+       ensembleState.data=null;
+       if(token!==renderToken || s!==stage())return null;
+       if(lastSm)renderEnsembleRisk(null,lastSm.gmax);
+       return null;
+     });
+
+   const deterministicPromise=fetchAllProgressive(s,force,(results)=>{
+     const rendered=renderDeterministicResults(results,s,token,ensembleState);
+     if(rendered.sm)lastSm=rendered.sm;
+     if(rendered.error)lastError=rendered.error;
+   });
+
+   const finalResults=await deterministicPromise;
+   if(token!==renderToken || s!==stage())return;
+
+   const finalRendered=renderDeterministicResults(finalResults,s,token,ensembleState);
+   if(finalRendered.sm)lastSm=finalRendered.sm;
+   if(finalRendered.error)lastError=finalRendered.error;
+
+   await Promise.allSettled([sunPromise,ensemblePromise]);
+   if(token!==renderToken || s!==stage())return;
+
+   if(!lastSm){
+     throw (lastError || new Error("Forecast not yet available"));
+   }
  }catch(e){
    if(token!==renderToken || s!==stage()) return;
    document.getElementById("timeline").innerHTML=`<div class="error">${e.message} Try Refresh if this persists.</div>`;
