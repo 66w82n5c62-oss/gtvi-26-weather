@@ -1,0 +1,35 @@
+name: Apply mobile v28
+
+on:
+  push:
+    paths:
+      - '.github/workflows/apply-v28.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  update-app:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update wording to Accuracy
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          old = 'Confidence improves as the ride day approaches — refresh regularly.'
+          new = 'Accuracy improves as the ride day approaches — refresh regularly.'
+          if old not in s:
+              raise SystemExit('Expected wording not found')
+          s = s.replace(old, new, 1)
+          s = s.replace('<title>GTVI 26 Weather App · Mobile v27</title>', '<title>GTVI 26 Weather App · Mobile v28</title>', 1)
+          p.write_text(s, encoding='utf-8')
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Update consensus helper wording to Accuracy"
+          git push
