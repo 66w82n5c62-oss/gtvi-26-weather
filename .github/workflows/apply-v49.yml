@@ -32,8 +32,6 @@ jobs:
               s=s.replace(old,new,1)
 
           rep('<title>GTVI 26 Weather App · Mobile v38</title>','<title>GTVI 26 Weather App · Mobile v49</title>','title')
-
-          # Remove title bicycle treatment.
           s=re.sub(r'\.appTitleCycling\{.*?\.titleBike\{.*?\n\}', '', s, count=1, flags=re.S)
           rep('''<div class="appTitle appTitleCycling">
             <svg class="titleBike" viewBox="0 0 64 36" aria-hidden="true">
@@ -46,10 +44,57 @@ jobs:
             <span style="font-size:11px;color:#7891a6;font-weight:700">Mobile</span>
           </div>''','''<div class="appTitle">GTVI 26 Weather App <span style="font-size:11px;color:#7891a6;font-weight:700">Mobile</span></div>''','title html')
 
-          # Replace clear/mostly-clear CSS icons with wheel-sun + rain-intensity styling.
           old_css=re.search(r'\.wxClear,\.wxMostlyClear\{.*?\.wxCloudPuff\{.*?\n\}',s,re.S)
           if not old_css: raise SystemExit('missing: old weather icon css')
-          new_css='''\.cycleSunIcon{\n  width:30px;\n  height:30px;\n  display:block;\n  overflow:visible;\n}\n.cycleSunIcon .cycleRim{\n  fill:none;\n  stroke:#ffd84d;\n  stroke-width:2.45;\n}\n.cycleSunIcon .cycleSpokes line{\n  stroke:#ffd84d;\n  stroke-width:.9;\n  stroke-linecap:round;\n}\n.cycleSunIcon .cycleHub{\n  fill:#ffd84d;\n  stroke:#f4b500;\n  stroke-width:.7;\n}\n.cycleSunIcon .cycleRays path{\n  fill:#ffd84d;\n  stroke:none;\n}\n.cycleSunIcon .cycleCloud ellipse,\n.cycleSunIcon .cycleCloud rect{\n  fill:#e8f1f8;\n  stroke:#c4d2de;\n  stroke-width:.6;\n}\n.cycleSunIcon.hasCloud{\n  width:32px;\n  height:32px;\n}\n.rainAmountIcon{\n  width:32px;\n  height:30px;\n  display:block;\n}\n.rainAmountIcon .rainCloud ellipse,\n.rainAmountIcon .rainCloud rect{\n  fill:#dce7ef;\n  stroke:#b9c9d6;\n  stroke-width:.7;\n}\n.rainAmountIcon .rainDrop{\n  fill:#58b7f4;\n}\n.rainAmountIcon.rain-none .rainCloud{\n  opacity:.72;\n}\n.rainAmountIcon.rain-light .rainDrop{\n  opacity:.78;\n}'''
+          new_css='''.cycleSunIcon{
+            width:30px;
+            height:30px;
+            display:block;
+            overflow:visible;
+          }
+          .cycleSunIcon .cycleRim{
+            fill:none;
+            stroke:#ffd84d;
+            stroke-width:2.45;
+          }
+          .cycleSunIcon .cycleSpokes line{
+            stroke:#ffd84d;
+            stroke-width:.9;
+            stroke-linecap:round;
+          }
+          .cycleSunIcon .cycleHub{
+            fill:#ffd84d;
+            stroke:#f4b500;
+            stroke-width:.7;
+          }
+          .cycleSunIcon .cycleRays path{
+            fill:#ffd84d;
+            stroke:none;
+          }
+          .cycleSunIcon .cycleCloud ellipse,
+          .cycleSunIcon .cycleCloud rect{
+            fill:#e8f1f8;
+            stroke:#c4d2de;
+            stroke-width:.6;
+          }
+          .cycleSunIcon.hasCloud{
+            width:32px;
+            height:32px;
+          }
+          .rainAmountIcon{
+            width:32px;
+            height:30px;
+            display:block;
+          }
+          .rainAmountIcon .rainCloud ellipse,
+          .rainAmountIcon .rainCloud rect{
+            fill:#dce7ef;
+            stroke:#b9c9d6;
+            stroke-width:.7;
+          }
+          .rainAmountIcon .rainDrop{fill:#58b7f4}
+          .rainAmountIcon.rain-none .rainCloud{opacity:.72}
+          .rainAmountIcon.rain-light .rainDrop{opacity:.78}'''
           s=s[:old_css.start()]+new_css+s[old_css.end():]
 
           rep('<div class="weatherGlyph" aria-hidden="true">🌧️</div>','<div class="weatherGlyph" id="mRainIcon" aria-hidden="true">☁️</div>','rain card icon')
@@ -86,27 +131,17 @@ jobs:
           const WICON=c=>c>=95?"⛈️":c>=80?"🌦️":c>=61?"🌧️":c>=51?"🌦️":c>=45?"🌫️":c===0?cycleSunIcon(false):c<=2?cycleSunIcon(true):"☁️";'''
           rep(old_wicon,new_wicon,'WICON')
 
-          # Day-summary wheel-sun icons.
           rep('if(!codes.length)return {icon:"⛅",label:"Sun / cloud uncertain"};','if(!codes.length)return {icon:cycleSunIcon(true),label:"Sun / cloud uncertain"};','sky uncertain')
           rep('if(avg<0.65)return {icon:"☀️",label:"Mostly sunny"};','if(avg<0.65)return {icon:cycleSunIcon(false),label:"Mostly sunny"};','sky sunny')
           rep('if(avg<1.45)return {icon:"🌤️",label:"Sunny intervals"};','if(avg<1.45)return {icon:cycleSunIcon(true),label:"Sunny intervals"};','sky intervals')
           rep('if(avg<2.35)return {icon:"⛅",label:"Sun and cloud"};','if(avg<2.35)return {icon:cycleSunIcon(true),label:"Sun and cloud"};','sky suncloud')
 
-          # Rain amount icon logic.
           anchor='function renderEnsembleRisk(risk,deterministicMax=null){'
           helper='''function rainAmountIcon(level="none"){
            const drops=level==="heavy"?3:level==="moderate"?2:level==="light"?1:0;
            const dropXs=drops===3?[18,24,30]:drops===2?[20,28]:drops===1?[24]:[];
            const rain=dropXs.map(x=>`<path class="rainDrop" d="M ${x} 29 C ${x-1.8} 32 ${x-1.8} 34 ${x} 35.5 C ${x+1.8} 34 ${x+1.8} 32 ${x} 29 Z"/>`).join("");
-           return `<svg class="rainAmountIcon rain-${level}" viewBox="0 0 48 44" aria-hidden="true">
-             <g class="rainCloud">
-               <ellipse cx="20" cy="22" rx="9" ry="6"/>
-               <ellipse cx="28" cy="19" rx="8" ry="7"/>
-               <ellipse cx="34" cy="23" rx="7" ry="5"/>
-               <rect x="13" y="21" width="28" height="7" rx="3.5"/>
-             </g>
-             ${rain}
-           </svg>`;
+           return `<svg class="rainAmountIcon rain-${level}" viewBox="0 0 48 44" aria-hidden="true"><g class="rainCloud"><ellipse cx="20" cy="22" rx="9" ry="6"/><ellipse cx="28" cy="19" rx="8" ry="7"/><ellipse cx="34" cy="23" rx="7" ry="5"/><rect x="13" y="21" width="28" height="7" rx="3.5"/></g>${rain}</svg>`;
           }
           function setRainAmountIcon(risk=null,deterministicPhrase=""){
            const el=document.getElementById("mRainIcon");
@@ -126,21 +161,15 @@ jobs:
           '''
           rep(anchor,helper+anchor,'rain helper anchor')
           rep('function renderEnsembleRisk(risk,deterministicMax=null){\n const box=document.getElementById("ensembleRisk");','function renderEnsembleRisk(risk,deterministicMax=null){\n const box=document.getElementById("ensembleRisk");\n setRainAmountIcon(risk,document.getElementById("outlook")?.textContent||"");','ensemble rain icon')
-
           rep('document.getElementById("mTemp").textContent="—";document.getElementById("mRain").textContent="—";document.getElementById("mWind").textContent="—";','document.getElementById("mTemp").textContent="—";document.getElementById("mRain").textContent="—";document.getElementById("mWind").textContent="—";document.getElementById("mRainIcon").innerHTML=rainAmountIcon("none");','baseUI rain reset')
           rep('document.getElementById("outlook").textContent=sm.phrase;','document.getElementById("outlook").textContent=sm.phrase;\n setRainAmountIcon(null,sm.phrase);','deterministic rain icon')
-
-          # Shorter disclosure text.
           s=s.replace(' · show forecast detail',' · show detail')
 
           p.write_text(s,encoding='utf-8')
+          scripts='\n'.join(re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,re.S))
+          Path('/tmp/app.js').write_text(scripts,encoding='utf-8')
           PY
-          node --check <(python - <<'PY'
-          import re
-          s=open('index.html',encoding='utf-8').read()
-          print('\n'.join(re.findall(r'<script(?:\\s[^>]*)?>(.*?)</script>',s,re.S)))
-          PY
-          )
+          node --check /tmp/app.js
       - name: Commit v49
         shell: bash
         run: |
