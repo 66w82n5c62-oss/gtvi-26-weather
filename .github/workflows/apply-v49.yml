@@ -1,0 +1,315 @@
+name: Apply mobile v49
+
+on:
+  push:
+    paths:
+      - '.github/workflows/apply-v49.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Apply v49 patch
+        shell: bash
+        run: |
+          cat > /tmp/v49.patch <<'PATCH'
+          --- a/index.html
+          +++ b/index.html
+          @@ -4,7 +4,7 @@
+           <meta charset="utf-8">
+           <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+           <meta name="theme-color" content="#081522">
+          -<title>GTVI 26 Weather App · Mobile v38</title>
+          +<title>GTVI 26 Weather App · Mobile v49</title>
+           <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+           <style>
+           :root {
+          @@ -500,21 +500,7 @@
+           .mobileStat span{display:block;font-size:8px;text-transform:uppercase;letter-spacing:.04em;color:#829caf;margin-top:4px}
+           .mobileEta{border:1px solid #3f729b}
+           
+          -.appTitleCycling{
+          -  display:flex;
+          -  align-items:center;
+          -  gap:7px;
+          -}
+          -.titleBike{
+          -  width:28px;
+          -  height:18px;
+          -  flex:0 0 auto;
+          -  stroke:#58b7f4;
+          -  stroke-width:2.4;
+          -  fill:none;
+          -  stroke-linecap:round;
+          -  stroke-linejoin:round;
+          -}
+          +
+           .mobileStopField{
+             min-width:0;
+           }
+          @@ -663,44 +649,62 @@
+             min-width:0;
+           }
+           
+          -.wxClear,.wxMostlyClear{
+          -  position:relative;
+          -  display:inline-block;
+          -  width:28px;
+          -  height:28px;
+          -  vertical-align:middle;
+          -}
+          -.wxSunDisc{
+          -  position:absolute;
+          -  left:7px;
+          -  top:7px;
+          -  width:14px;
+          -  height:14px;
+          -  border-radius:50%;
+          -  background:#ffd84d;
+          -  box-shadow:
+          -    0 -10px 0 -6px #ffd84d,
+          -    0 10px 0 -6px #ffd84d,
+          -    10px 0 0 -6px #ffd84d,
+          -    -10px 0 0 -6px #ffd84d,
+          -    7px 7px 0 -6px #ffd84d,
+          -    -7px -7px 0 -6px #ffd84d,
+          -    7px -7px 0 -6px #ffd84d,
+          -    -7px 7px 0 -6px #ffd84d;
+          -}
+          -.wxCloudPuff{
+          -  position:absolute;
+          -  right:1px;
+          -  bottom:3px;
+          -  width:15px;
+          -  height:8px;
+          -  border-radius:8px;
+          -  background:#e8f1f8;
+          -  box-shadow:
+          -    -5px 1px 0 1px #e8f1f8,
+          -    -1px -4px 0 -1px #e8f1f8;
+          -  border:1px solid rgba(8,21,34,.22);
+          +.cycleSunIcon{
+          +  width:30px;
+          +  height:30px;
+          +  display:block;
+          +  overflow:visible;
+          +}
+          +.cycleSunIcon .cycleRim{
+          +  fill:none;
+          +  stroke:#ffd84d;
+          +  stroke-width:2.45;
+          +}
+          +.cycleSunIcon .cycleSpokes line{
+          +  stroke:#ffd84d;
+          +  stroke-width:.9;
+          +  stroke-linecap:round;
+           }
+          +.cycleSunIcon .cycleHub{
+          +  fill:#ffd84d;
+          +  stroke:#f4b500;
+          +  stroke-width:.7;
+          +}
+          +.cycleSunIcon .cycleRays path{
+          +  fill:#ffd84d;
+          +  stroke:none;
+          +}
+          +.cycleSunIcon .cycleCloud ellipse,
+          +.cycleSunIcon .cycleCloud rect{
+          +  fill:#e8f1f8;
+          +  stroke:#c4d2de;
+          +  stroke-width:.6;
+          +}
+          +.cycleSunIcon.hasCloud{
+          +  width:32px;
+          +  height:32px;
+          +}
+          +.rainAmountIcon{
+          +  width:32px;
+          +  height:30px;
+          +  display:block;
+          +}
+          +.rainAmountIcon .rainCloud ellipse,
+          +.rainAmountIcon .rainCloud rect{
+          +  fill:#dce7ef;
+          +  stroke:#b9c9d6;
+          +  stroke-width:.7;
+          +}
+          +.rainAmountIcon .rainDrop{
+          +  fill:#58b7f4;
+          +}
+          +.rainAmountIcon.rain-none .rainCloud{
+          +  opacity:.72;
+          +}
+          +.rainAmountIcon.rain-light .rainDrop{
+          +  opacity:.78;
+          +}
+          +
+           .wxIcon{
+             grid-column:auto!important;
+             grid-row:auto!important;
+          @@ -958,16 +962,7 @@
+           </head>
+           <body>
+           <div class="app">
+          -<div class="appTitle appTitleCycling">
+          -  <svg class="titleBike" viewBox="0 0 64 36" aria-hidden="true">
+          -    <circle cx="14" cy="25" r="8"></circle>
+          -    <circle cx="50" cy="25" r="8"></circle>
+          -    <path d="M14 25 L25 10 L34 25 L20 25 L28 14 L40 14 L50 25"></path>
+          -    <path d="M25 10 L21 7 M40 14 L44 8 M42 8 L48 8"></path>
+          -  </svg>
+          -  <span>GTVI 26 Weather App</span>
+          -  <span style="font-size:11px;color:#7891a6;font-weight:700">Mobile</span>
+          -</div>
+          +<div class="appTitle">GTVI 26 Weather App <span style="font-size:11px;color:#7891a6;font-weight:700">Mobile</span></div>
+           <header>
+             <div class="brand">Vienna → Pula <small>Live route forecasts · 12–18 Sep 2026</small></div>
+             <button id="refresh" class="refresh">↻ Refresh</button>
+          @@ -1007,7 +1002,7 @@
+                 </div>
+               </div>
+               <div class="metric mobileWeatherCard">
+          -      <div class="weatherGlyph" aria-hidden="true">🌧️</div>
+          +      <div class="weatherGlyph" id="mRainIcon" aria-hidden="true">☁️</div>
+                 <div class="weatherCardText">
+                   <div class="label">Rain</div>
+                   <div class="value" id="mRain">—</div>
+          @@ -1185,7 +1180,37 @@
+           let activeKey="D1", cache={}, pending={}, ensembleCache={}, ensemblePending={}, sunCache={}, sunPending={}, map=null, lineLayer=null, markerLayer=null, renderToken=0, avgSpeed=20, stopPlans={};
+           
+           const WDESC={0:"Clear",1:"Mostly clear",2:"Partly cloudy",3:"Cloudy",45:"Fog",48:"Fog",51:"Drizzle",53:"Drizzle",55:"Drizzle",61:"Light rain",63:"Rain",65:"Heavy rain",80:"Showers",81:"Showers",82:"Heavy showers",95:"Thunderstorms",96:"Thunderstorms",99:"Thunderstorms"};
+          -const WICON=c=>c>=95?"⛈️":c>=80?"🌦️":c>=61?"🌧️":c>=51?"🌦️":c>=45?"🌫️":c===0?'<span class="wxClear"><span class="wxSunDisc"></span></span>':c<=2?'<span class="wxMostlyClear"><span class="wxSunDisc"></span><span class="wxCloudPuff"></span></span>':"☁️";
+          +function cycleSunIcon(withCloud=false){
+          + const rayAngles=[0,45,90,135,180,225,270,315];
+          + const rays=rayAngles.map(deg=>{
+          +   const a=deg*Math.PI/180;
+          +   // Compact classic-sun triangles: short, crisp and evenly spaced,
+          +   // while keeping the bicycle wheel clearly separate.
+          +   const base=18.7,tip=24.6,halfWidth=2.75;
+          +   const bx=24+base*Math.cos(a),by=24+base*Math.sin(a);
+          +   const tx=24+tip*Math.cos(a),ty=24+tip*Math.sin(a);
+          +   const px=halfWidth*Math.sin(a),py=halfWidth*Math.cos(a);
+          +   return `<path d="M ${(bx-px).toFixed(1)} ${(by+py).toFixed(1)} L ${(bx+px).toFixed(1)} ${(by-py).toFixed(1)} L ${tx.toFixed(1)} ${ty.toFixed(1)} Z"/>`;
+          + }).join("");
+          + const spokes=Array.from({length:12},(_,i)=>{
+          +   const a=(Math.PI*2*i/12),x=24+12.7*Math.cos(a),y=24+12.7*Math.sin(a);
+          +   return `<line x1="24" y1="24" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}"/>`;
+          + }).join("");
+          + const cloud=withCloud?`<g class="cycleCloud">
+          +   <ellipse cx="34" cy="31.5" rx="8" ry="5.2"/>
+          +   <ellipse cx="28.5" cy="32.5" rx="6.5" ry="4.4"/>
+          +   <ellipse cx="39.5" cy="33" rx="6.2" ry="4.1"/>
+          +   <rect x="24" y="31" width="22" height="6" rx="3"/>
+          + </g>`:"";
+          + return `<svg class="cycleSunIcon${withCloud?" hasCloud":""}" viewBox="0 0 48 48" aria-hidden="true">
+          +   <g class="cycleRays">${rays}</g>
+          +   <circle class="cycleRim" cx="24" cy="24" r="14"/>
+          +   <g class="cycleSpokes">${spokes}</g>
+          +   <circle class="cycleHub" cx="24" cy="24" r="2.2"/>
+          +   ${cloud}
+          + </svg>`;
+          +}
+          +const WICON=c=>c>=95?"⛈️":c>=80?"🌦️":c>=61?"🌧️":c>=51?"🌦️":c>=45?"🌫️":c===0?cycleSunIcon(false):c<=2?cycleSunIcon(true):"☁️";
+           
+           function stage(key=activeKey){return ROUTES[key]}
+           
+          @@ -1575,8 +1600,38 @@
+              precipP90:percentile(maxP,.9)
+            };
+           }
+          +function rainAmountIcon(level="none"){
+          + const drops=level==="heavy"?3:level==="moderate"?2:level==="light"?1:0;
+          + const dropXs=drops===3?[18,24,30]:drops===2?[20,28]:drops===1?[24]:[];
+          + const rain=dropXs.map(x=>`<path class="rainDrop" d="M ${x} 29 C ${x-1.8} 32 ${x-1.8} 34 ${x} 35.5 C ${x+1.8} 34 ${x+1.8} 32 ${x} 29 Z"/>`).join("");
+          + return `<svg class="rainAmountIcon rain-${level}" viewBox="0 0 48 44" aria-hidden="true">
+          +   <g class="rainCloud">
+          +     <ellipse cx="20" cy="22" rx="9" ry="6"/>
+          +     <ellipse cx="28" cy="19" rx="8" ry="7"/>
+          +     <ellipse cx="34" cy="23" rx="7" ry="5"/>
+          +     <rect x="13" y="21" width="28" height="7" rx="3.5"/>
+          +   </g>
+          +   ${rain}
+          + </svg>`;
+          +}
+          +function setRainAmountIcon(risk=null,deterministicPhrase=""){
+          + const el=document.getElementById("mRainIcon");
+          + if(!el)return;
+          + let level="none";
+          + if(risk){
+          +   if((risk.rainHeavy??0)>=35 || (risk.precipP90??0)>=2)level="heavy";
+          +   else if((risk.rainModerate??0)>=35 || (risk.precipP90??0)>=1)level="moderate";
+          +   else if((risk.rainAny??0)>=20 || (risk.precipP90??0)>=0.2)level="light";
+          + }else{
+          +   const p=(deterministicPhrase||"").toLowerCase();
+          +   if(p.includes("thunder")||p.includes("periods of rain")||p.includes("wet"))level="moderate";
+          +   else if(p.includes("shower"))level="light";
+          + }
+          + el.innerHTML=rainAmountIcon(level);
+          +}
+           function renderEnsembleRisk(risk,deterministicMax=null){
+            const box=document.getElementById("ensembleRisk");
+          + setRainAmountIcon(risk,document.getElementById("outlook")?.textContent||"");
+           
+            if(!risk){
+              box.innerHTML=`<div class="riskRow riskRowFull">
+          @@ -1636,14 +1691,14 @@
+           }
+           function skySummary(bundles){
+            const codes=bundles.flatMap(b=>b.forecasts.filter(Boolean).map(r=>r.code).filter(Number.isFinite));
+          - if(!codes.length)return {icon:"⛅",label:"Sun / cloud uncertain"};
+          + if(!codes.length)return {icon:cycleSunIcon(true),label:"Sun / cloud uncertain"};
+            // Convert WMO weather codes into a simple sky-cover score.
+            // 0 clear, 1 mainly clear, 2 partly cloudy, all cloud/fog/precip states treated as overcast.
+            const scores=codes.map(c=>c===0?0:c===1?1:c===2?2:3);
+            const avg=scores.reduce((a,c)=>a+c,0)/scores.length;
+          - if(avg<0.65)return {icon:"☀️",label:"Mostly sunny"};
+          - if(avg<1.45)return {icon:"🌤️",label:"Sunny intervals"};
+          - if(avg<2.35)return {icon:"⛅",label:"Sun and cloud"};
+          + if(avg<0.65)return {icon:cycleSunIcon(false),label:"Mostly sunny"};
+          + if(avg<1.45)return {icon:cycleSunIcon(true),label:"Sunny intervals"};
+          + if(avg<2.35)return {icon:cycleSunIcon(true),label:"Sun and cloud"};
+            return {icon:"☁️",label:"Mostly cloudy"};
+           }
+           function summarize(bundles){
+          @@ -1685,7 +1740,7 @@
+            document.getElementById("outlook").textContent="Loading forecast…";
+            document.getElementById("explain").textContent="Comparing three forecasts along your actual route.";
+            document.getElementById("agreement").className="agree medium";document.getElementById("agreement").textContent="LOADING";
+          - document.getElementById("mTemp").textContent="—";document.getElementById("mRain").textContent="—";document.getElementById("mWind").textContent="—";
+          + document.getElementById("mTemp").textContent="—";document.getElementById("mRain").textContent="—";document.getElementById("mWind").textContent="—";document.getElementById("mRainIcon").innerHTML=rainAmountIcon("none");
+            document.getElementById("mSkyIcon").textContent="⛅";document.getElementById("mSkySub").textContent="Sun / cloud loading…";
+            document.getElementById("mRainSub").textContent="";document.getElementById("mWindSub").textContent="";
+            document.getElementById("ensembleRisk").innerHTML=`
+          @@ -1753,7 +1808,7 @@
+                     </div>
+                   </div>
+                 </div>
+          -      <details><summary>${b.conf.label.replace(" forecast consensus"," consensus")} · show forecast detail</summary><div class="modelGrid">${detail}</div></details>
+          +      <details><summary>${b.conf.label.replace(" forecast consensus"," consensus")} · show detail</summary><div class="modelGrid">${detail}</div></details>
+               </div>`;
+            }).join("");
+           }
+          @@ -1785,6 +1840,7 @@
+            }
+           
+            document.getElementById("outlook").textContent=sm.phrase;
+          + setRainAmountIcon(null,sm.phrase);
+            document.getElementById("mTemp").textContent=`${sm.tmin}–${sm.tmax}°`;
+            document.getElementById("mSkyIcon").innerHTML=sm.sky.icon;
+            document.getElementById("mSkySub").textContent=sm.sky.label;
+          PATCH
+          git apply /tmp/v49.patch
+      - name: Commit v49
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Release weather app mobile v49"
+          git push origin HEAD:main
