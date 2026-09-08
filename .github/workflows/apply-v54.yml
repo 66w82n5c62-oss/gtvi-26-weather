@@ -1,0 +1,60 @@
+name: Apply mobile v54
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/apply-v54.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply v54 changes
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+
+          s=s.replace('<title>GTVI 26 Weather App · Mobile v49</title>', '<title>GTVI 26 Weather App · Mobile v54</title>', 1)
+
+          old=''' const spokes=Array.from({length:12},(_,i)=>{\n   const a=(Math.PI*2*i/12);\n   // Slightly crossed spoke pattern so the wheel reads more like a bicycle wheel\n   // rather than simple straight radial lines at this tiny size.\n   const startAngle=a + (i%2===0 ? -0.16 : 0.16);\n   const endAngle=a + (i%2===0 ? 0.32 : -0.32);\n   const x1=24+3.6*Math.cos(startAngle), y1=24+3.6*Math.sin(startAngle);\n   const x2=24+12.7*Math.cos(endAngle),  y2=24+12.7*Math.sin(endAngle);\n   return `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}"/>`;\n }).join("");'''
+          new=''' const spokes=Array.from({length:24},(_,i)=>{\n   const a=(Math.PI*2*i/24);\n   // Denser crossed-lacing pattern so the wheel reads more like a road-bike wheel\n   // rather than a sparse motorbike-style wheel.\n   const startAngle=a + (i%2===0 ? -0.12 : 0.12);\n   const endAngle=a + (i%2===0 ? 0.24 : -0.24);\n   const x1=24+3.1*Math.cos(startAngle), y1=24+3.1*Math.sin(startAngle);\n   const x2=24+12.7*Math.cos(endAngle),  y2=24+12.7*Math.sin(endAngle);\n   return `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}"/>`;\n }).join("");'''
+          if old not in s: raise SystemExit('spoke block not found')
+          s=s.replace(old,new,1)
+
+          old_css='''.cycleSunIcon .cycleSpokes line{\n  stroke:#ffd84d;\n  stroke-width:.9;\n  stroke-linecap:round;\n}'''
+          new_css='''.cycleSunIcon .cycleSpokes line{\n  stroke:#ffd84d;\n  stroke-width:.7;\n  stroke-linecap:round;\n}'''
+          if old_css not in s: raise SystemExit('spoke css not found')
+          s=s.replace(old_css,new_css,1)
+
+          if '#startTime{' not in s and '#startTime {' not in s:
+              marker='@media(max-width:520px){'
+              rule='''#startTime{\n  font-size:13px;\n}\n'''
+              if marker in s: s=s.replace(marker,rule+'\n'+marker,1)
+              else: s=s.replace('</style>',rule+'\n</style>',1)
+
+          old_svg='''   <g class="cycleRays">${rays}</g>\n   <circle class="cycleRim" cx="24" cy="24" r="14"/>\n   <g class="cycleSpokes">${spokes}</g>\n   <circle class="cycleHub" cx="24" cy="24" r="2.2"/>\n   ${cloud}\n </svg>`;'''
+          new_svg='''   <g class="cycleRays">${rays}</g>\n   <circle class="cycleRim" cx="24" cy="24" r="14"/>\n   <circle class="cycleInnerRim" cx="24" cy="24" r="12.9"/>\n   <g class="cycleSpokes">${spokes}</g>\n   <circle class="cycleHub" cx="24" cy="24" r="2.2"/>\n   ${cloud}\n </svg>`;'''
+          if old_svg not in s: raise SystemExit('wheel svg not found')
+          s=s.replace(old_svg,new_svg,1)
+
+          rim='''.cycleSunIcon .cycleRim{\n  fill:none;\n  stroke:#ffd84d;\n  stroke-width:2.45;\n}'''
+          inner=rim+'''\n.cycleSunIcon .cycleInnerRim{\n  fill:none;\n  stroke:var(--bg);\n  stroke-width:2.1;\n}'''
+          if rim not in s: raise SystemExit('rim css not found')
+          s=s.replace(rim,inner,1)
+
+          p.write_text(s,encoding='utf-8')
+          PY
+      - name: Commit v54
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Release mobile v54" || exit 0
+          git push
