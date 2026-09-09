@@ -1,0 +1,38 @@
+name: Publish v86 preview
+on:
+  push:
+    paths:
+      - '.github/workflows/publish-v86.yml'
+      - '.github/v86-builder.py'
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Build and check
+        run: |
+          python3 .github/v86-builder.py
+          python3 - <<'PY' > /tmp/v86-check.js
+          import re
+          s=open('preview-v86.html',encoding='utf-8').read()
+          print('\n'.join(re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,re.S)))
+          PY
+          node --check /tmp/v86-check.js
+          grep -q 'Mobile v86 Preview' preview-v86.html
+          grep -q 'highest route-point consensus' preview-v86.html
+          grep -q 'Peak ~' preview-v86.html
+          grep -q 'Windiest' preview-v86.html
+          grep -q 'consensusRainProbability' preview-v86.html
+          ! grep -Eq '☀️|☀|🌤️|⛅|🌞|🌥️|🌦️' preview-v86.html
+      - name: Publish preview
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add preview-v86.html
+          git commit -m 'Publish v86 consensus-aligned weather preview'
+          git push origin main
