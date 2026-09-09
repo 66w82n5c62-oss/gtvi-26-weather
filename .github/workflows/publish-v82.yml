@@ -1,0 +1,63 @@
+name: Publish v82 preview
+
+on:
+  push:
+    paths:
+      - '.github/workflows/publish-v82.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Build v82 preview
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p=Path('preview-v81.html')
+          s=p.read_text(encoding='utf-8')
+          s=s.replace('<title>GTVI 26 Weather App · Mobile v81 Preview</title>','<title>GTVI 26 Weather App · Mobile v82 Preview</title>',1)
+
+          # iOS native time controls reserve internal space and can clip HH:MM.
+          # Keep the same JS value format, but use a plain text field for this one control.
+          pat=r'<input([^>]*class="mobileTimeInput"[^>]*)>'
+          m=re.search(pat,s)
+          if not m:
+              raise SystemExit('mobileTimeInput markup not found')
+          tag=m.group(0)
+          new=tag
+          new=re.sub(r'type="time"', 'type="text" inputmode="numeric" pattern="[0-9]{2}:[0-9]{2}"', new, count=1)
+          if new==tag:
+              raise SystemExit('mobileTimeInput was not type=time')
+          s=s.replace(tag,new,1)
+
+          # Make the text field comfortable and centred; no native picker chrome remains.
+          css='''\n/* v82: custom HH:MM field avoids iOS native time-control clipping */\n.mobileTimeInput{\n  font-size:12px!important;\n  padding:0 4px!important;\n  letter-spacing:0!important;\n  text-align:center!important;\n  appearance:none!important;\n  -webkit-appearance:none!important;\n}\n'''
+          s=s.replace('</style>',css+'\n</style>',1)
+          Path('preview-v82.html').write_text(s,encoding='utf-8')
+          PY
+
+          python3 - <<'PY' > /tmp/v82-check.js
+          import re
+          s=open('preview-v82.html',encoding='utf-8').read()
+          print('\n'.join(re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,re.S)))
+          PY
+          node --check /tmp/v82-check.js
+          grep -q 'Mobile v82 Preview' preview-v82.html
+          grep -q 'custom HH:MM field' preview-v82.html
+          grep -q 'class="mobileTimeInput"' preview-v82.html
+          ! grep -Eq '☀️|☀|🌤️|⛅|🌞|🌥️|🌦️' preview-v82.html
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add preview-v82.html
+          git commit -m 'Publish v82 Wheels Rolling time input preview'
+          git push origin main
