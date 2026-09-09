@@ -24,21 +24,17 @@ jobs:
           s=Path('preview-v74.html').read_text()
           s=s.replace('<title>GTVI 26 Weather App · Mobile v74 Preview</title>','<title>GTVI 26 Weather App · Mobile v75 Preview</title>',1)
           old='.modelRow{display:grid;grid-template-columns:64px 1fr 1fr 1fr;gap:7px;font-size:11px;background:#0c1c2c;padding:7px;border-radius:8px;color:#c3d1dc}'
-          new='.modelRow{display:grid;grid-template-columns:58px 42px minmax(118px,1.45fr) minmax(104px,1fr);gap:5px;font-size:11px;background:#0c1c2c;padding:7px;border-radius:8px;color:#c3d1dc}\n.modelRow .modelRain{white-space:nowrap}'
+          new='.modelRow{display:grid;grid-template-columns:58px 42px minmax(118px,1.45fr) minmax(104px,1fr);gap:5px;font-size:11px;background:#0c1c2c;padding:7px;border-radius:8px;color:#c3d1dc}\n.modelRow > span:nth-child(3){white-space:nowrap}'
           if old not in s: raise SystemExit('modelRow block missing')
           s=s.replace(old,new,1)
-          oldspan='<span>${r.precip.toFixed(1)} mm/h · ${rainProbText}${ensTag}</span>'
-          newsp='<span class="modelRain">${r.precip.toFixed(1)} mm/h · ${rainProbText}${ensTag}</span>'
-          if oldspan not in s: raise SystemExit('rain span missing')
-          s=s.replace(oldspan,newsp,1)
           Path('preview-v75.html').write_text(s)
           PY
-          node --check <(python3 - <<'PY'
+          python3 - <<'PY' > v75-check.js
           import re
           s=open('preview-v75.html').read()
           print('\n'.join(re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,re.S)))
           PY
-          )
+          node --check v75-check.js
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add preview-v75.html
