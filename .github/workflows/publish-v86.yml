@@ -25,9 +25,11 @@ jobs:
           node --check /tmp/v86-check.js
           grep -q 'Mobile v86 Preview' preview-v86.html
           grep -q 'highest route-point consensus' preview-v86.html
-          grep -q 'Peak ~' preview-v86.html
+          grep -q 'peak gusts ~' preview-v86.html
           grep -q 'Windiest' preview-v86.html
           grep -q 'consensusRainProbability' preview-v86.html
+          grep -q 'gtvi26_forecast_v86_' preview-v86.html
+          grep -q 'ECMWF preferred · GEFS fallback' preview-v86.html
           ! grep -Eq '☀️|☀|🌤️|⛅|🌞|🌥️|🌦️' preview-v86.html
       - name: Publish preview
         run: |
