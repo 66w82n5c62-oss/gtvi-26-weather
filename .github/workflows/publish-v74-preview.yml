@@ -19,49 +19,8 @@ jobs:
       - name: Build v74 preview
         shell: bash
         run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          import re
-          src=Path('preview-v73.html')
-          dst=Path('preview-v74.html')
-          s=src.read_text()
-          s=s.replace('<title>GTVI 26 Weather App · Mobile v73 Preview</title>','<title>GTVI 26 Weather App · Mobile v74 Preview</title>',1)
-
-          anchor='function ensembleStageRisk(data,s){\n'
-          helper='''function pointEnsembleRainProbability(data,s,p,idx){
-           if(!Array.isArray(data)||!data.length)return null;
-           const model=String(data._ensembleModel||"");
-           if(!model.startsWith("ecmwf_"))return null;
-           const h=(data[idx]||data[0])?.hourly;if(!h)return null;
-           const ti=nearestISO(h.time,arrivalInfo(p.ride_h,s,p.km).iso);if(ti<0)return null;
-           const vals=ensembleKeys(h,"precipitation").map(k=>num(h[k]?.[ti])).filter(Number.isFinite);
-           if(vals.length<10)return null;
-           return Math.round(100*vals.filter(v=>v>=0.2).length/vals.length);
-          }
-
-          function ensembleStageRisk(data,s){
-          '''
-          if anchor not in s: raise SystemExit('ensembleStageRisk anchor missing')
-          s=s.replace(anchor,helper,1)
-
-          old='const rainProb=Number.isFinite(r.rain)?Math.round(r.rain)+"%":"—";'
-          new='''let rainProb=Number.isFinite(r.rain)?Math.round(r.rain)+"%":"—";
-         if(md.id==="ecmwf"&&!Number.isFinite(r.rain)){
-           const ep=pointEnsembleRainProbability(ensembleCache[s.key],s,b.p,idx);
-           if(Number.isFinite(ep))rainProb=ep+"% ENS";
-         }'''
-          if old not in s: raise SystemExit('rainProb line missing')
-          s=s.replace(old,new,1)
-
-          oldret='<span>${r.precip.toFixed(1)} mm/h · ${rainProb}</span>'
-          newret='<span>Rain ${r.precip.toFixed(1)} mm/h · ${rainProb}</span>'
-          if oldret not in s: raise SystemExit('rain display span missing')
-          s=s.replace(oldret,newret,1)
-          dst.write_text(s)
-
-          scripts='\n'.join(re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,re.S))
-          Path('v74-check.js').write_text(scripts)
-          PY
+          echo 'ZnJvbSBwYXRobGliIGltcG9ydCBQYXRoCmltcG9ydCByZQpzcmM9UGF0aCgicHJldmlldy12NzMuaHRtbCIpCmRzdD1QYXRoKCJwcmV2aWV3LXY3NC5odG1sIikKcz1zcmMucmVhZF90ZXh0KCkKcz1zLnJlcGxhY2UoJzx0aXRsZT5HVFZJIDI2IFdlYXRoZXIgQXBwIMK3IE1vYmlsZSB2NzMgUHJldmlldzwvdGl0bGU+JywnPHRpdGxlPkdUVkkgMjYgV2VhdGhlciBBcHAgwrcgTW9iaWxlIHY3NCBQcmV2aWV3PC90aXRsZT4nLDEpCmFuY2hvcj0nZnVuY3Rpb24gZW5zZW1ibGVTdGFnZVJpc2soZGF0YSxzKXtcbicKaGVscGVyPScnJ2Z1bmN0aW9uIHBvaW50RW5zZW1ibGVSYWluUHJvYmFiaWxpdHkoZGF0YSxzLHAsaWR4KXsKIGlmKCFBcnJheS5pc0FycmF5KGRhdGEpfHwhZGF0YS5sZW5ndGgpcmV0dXJuIG51bGw7CiBjb25zdCBtb2RlbD1TdHJpbmcoZGF0YS5fZW5zZW1ibGVNb2RlbHx8IiIpOwogaWYoIW1vZGVsLnN0YXJ0c1dpdGgoImVjbXdmXyIpKXJldHVybiBudWxsOwogY29uc3QgaD0oZGF0YVtpZHhdfHxkYXRhWzBdKT8uaG91cmx5O2lmKCFoKXJldHVybiBudWxsOwogY29uc3QgdGk9bmVhcmVzdElTTyhoLnRpbWUsYXJyaXZhbEluZm8ocC5yaWRlX2gscyxwLmttKS5pc28pO2lmKHRpPDApcmV0dXJuIG51bGw7CiBjb25zdCB2YWxzPWVuc2VtYmxlS2V5cyhoLCJwcmVjaXBpdGF0aW9uIikubWFwKGs9Pm51bShoW2tdPy5bdGldKSkuZmlsdGVyKE51bWJlci5pc0Zpbml0ZSk7CiBpZih2YWxzLmxlbmd0aDwxMClyZXR1cm4gbnVsbDsKIHJldHVybiBNYXRoLnJvdW5kKDEwMCp2YWxzLmZpbHRlcih2PT52Pj0wLjIpLmxlbmd0aC92YWxzLmxlbmd0aCk7Cn0KCmZ1bmN0aW9uIGVuc2VtYmxlU3RhZ2VSaXNrKGRhdGEscyl7CicnJwppZiBhbmNob3Igbm90IGluIHM6IHJhaXNlIFN5c3RlbUV4aXQoImVuc2VtYmxlU3RhZ2VSaXNrIGFuY2hvciBtaXNzaW5nIikKcz1zLnJlcGxhY2UoYW5jaG9yLGhlbHBlciwxKQpvbGQ9J2NvbnN0IHJhaW5Qcm9iPU51bWJlci5pc0Zpbml0ZShyLnJhaW4pP01hdGgucm91bmQoci5yYWluKSsiJSI6IuKAlCI7JwpuZXc9JycnbGV0IHJhaW5Qcm9iPU51bWJlci5pc0Zpbml0ZShyLnJhaW4pP01hdGgucm91bmQoci5yYWluKSsiJSI6IuKAlCI7CiAgICAgICAgIGlmKG1kLmlkPT09ImVjbXdmIiYmIU51bWJlci5pc0Zpbml0ZShyLnJhaW4pKXsKICAgICAgICAgICBjb25zdCBlcD1wb2ludEVuc2VtYmxlUmFpblByb2JhYmlsaXR5KGVuc2VtYmxlQ2FjaGVbcy5rZXldLHMsYi5wLGlkeCk7CiAgICAgICAgICAgaWYoTnVtYmVyLmlzRmluaXRlKGVwKSlyYWluUHJvYj1lcCsiJSBFTlMiOwogICAgICAgICB9JycnCmlmIG9sZCBub3QgaW4gczogcmFpc2UgU3lzdGVtRXhpdCgicmFpblByb2IgbGluZSBtaXNzaW5nIikKcz1zLnJlcGxhY2Uob2xkLG5ldywxKQpvbGRyZXQ9JzxzcGFuPiR7ci5wcmVjaXAudG9GaXhlZCgxKX0gbW0vaCDCtyAke3JhaW5Qcm9ifTwvc3Bhbj4nCm5ld3JldD0nPHNwYW4+UmFpbiAke3IucHJlY2lwLnRvRml4ZWQoMSl9IG1tL2ggwrcgJHtyYWluUHJvYn08L3NwYW4+JwppZiBvbGRyZXQgbm90IGluIHM6IHJhaXNlIFN5c3RlbUV4aXQoInJhaW4gZGlzcGxheSBzcGFuIG1pc3NpbmciKQpzPXMucmVwbGFjZShvbGRyZXQsbmV3cmV0LDEpCmRzdC53cml0ZV90ZXh0KHMpCnNjcmlwdHM9J1xuJy5qb2luKHJlLmZpbmRhbGwocic8c2NyaXB0KD86XHNbXj5dKik/PiguKj8pPC9zY3JpcHQ+JyxzLHJlLlMpKQpQYXRoKCd2NzQtY2hlY2suanMnKS53cml0ZV90ZXh0KHNjcmlwdHMpCg==' | base64 -d > build_v74.py
+          python3 build_v74.py
           node --check v74-check.js
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
