@@ -10,7 +10,7 @@ js='''
   if(reduced)return;
   const el=document.getElementById('alongHighlights');
   if(!el)return;
-  let timer=null, resumeTimer=null;
+  let timer=null, resumeTimer=null, interacting=false;
   function cards(){return Array.from(el.querySelectorAll('.alongHighlight'));}
   function nearestIndex(items){
     if(!items.length)return 0;
@@ -22,6 +22,7 @@ js='''
     return best;
   }
   function advance(){
+    if(interacting)return;
     const items=cards();
     if(items.length<2)return;
     const i=nearestIndex(items);
@@ -29,15 +30,26 @@ js='''
     el.scrollTo({left:items[n].offsetLeft,behavior:'smooth'});
   }
   function start(){
+    if(interacting)return;
     clearInterval(timer);
     timer=setInterval(advance,3600);
   }
-  function pause(){
+  function hold(){
+    interacting=true;
     clearInterval(timer);
     clearTimeout(resumeTimer);
-    resumeTimer=setTimeout(start,7000);
   }
-  ['touchstart','pointerdown','wheel'].forEach(evt=>el.addEventListener(evt,pause,{passive:true}));
+  function release(){
+    interacting=false;
+    clearTimeout(resumeTimer);
+    resumeTimer=setTimeout(start,5000);
+  }
+  el.addEventListener('touchstart',hold,{passive:true});
+  el.addEventListener('touchend',release,{passive:true});
+  el.addEventListener('touchcancel',release,{passive:true});
+  el.addEventListener('pointerdown',hold,{passive:true});
+  window.addEventListener('pointerup',release,{passive:true});
+  el.addEventListener('wheel',()=>{hold();release();},{passive:true});
   const mo=new MutationObserver(()=>{
     el.scrollTo({left:0,behavior:'auto'});
     start();
