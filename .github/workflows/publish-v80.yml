@@ -1,0 +1,52 @@
+name: Publish v80 preview
+
+on:
+  push:
+    paths:
+      - '.github/workflows/publish-v80.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Build v80 preview
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          s=Path('preview-v79.html').read_text(encoding='utf-8')
+          s=s.replace('<title>GTVI 26 Weather App · Mobile v79 Preview</title>','<title>GTVI 26 Weather App · Mobile v80 Preview</title>',1)
+          old='${windEffect?`<div class="pointGust">${windEffect.label}</div>`:""}'
+          new='${windEffect?`<div class="pointGust pointWindEffect">${windEffect.label}</div>`:""}'
+          if old not in s:
+              raise SystemExit('wind effect markup not found')
+          s=s.replace(old,new,1)
+          css='''\n.pointWindEffect{\n  font-size:10px;\n  color:#f4f8fc;\n  font-weight:800;\n}\n'''
+          if '</style>' not in s:
+              raise SystemExit('style close not found')
+          s=s.replace('</style>',css+'\n</style>',1)
+          Path('preview-v80.html').write_text(s,encoding='utf-8')
+          PY
+
+          python3 - <<'PY' > /tmp/v80-check.js
+          import re
+          s=open('preview-v80.html',encoding='utf-8').read()
+          print('\n'.join(re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,re.S)))
+          PY
+          node --check /tmp/v80-check.js
+          grep -q 'Mobile v80 Preview' preview-v80.html
+          grep -q 'pointWindEffect' preview-v80.html
+          ! grep -Eq '☀️|☀|🌤️|⛅|🌞|🌥️|🌦️' preview-v80.html
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add preview-v80.html
+          git commit -m 'Publish v80 preview'
+          git push origin main
