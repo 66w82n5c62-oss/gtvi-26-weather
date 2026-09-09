@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#081522">
+<title>GPX Route Weather · Preview v5</title>
+<style>html,body{margin:0;background:#081522;color:#f4f8fc;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}body{padding:24px}.loading{max-width:760px;margin:auto;color:#bac9d6;font-size:13px}</style>
+</head>
+<body>
+<div class="loading">Loading GPX Route Weather v5…</div>
+<script>
+(async()=>{
+ try{
+  const r=await fetch('./gpx-weather-preview-v4.html?v=4',{cache:'no-store'});
+  if(!r.ok)throw new Error('Could not load v4 base ('+r.status+')');
+  let html=await r.text();
+  html=html.replaceAll('Preview v4','Preview v5');
+  html=html.replaceAll('GPX Preview v4','GPX Preview v5');
+  html=html.replaceAll('gpx_route_weather_v4_','gpx_route_weather_v5_');
+  html=html.replace('const url=\\`${src.endpoint}?latitude=\\${lat}&longitude=\\${lon}&elevation=\\${elevation}&hourly=\\${hourly}&timezone=auto&start_date=\\${s.date}&end_date=\\${end}\\`;','const url=\\`\\${src.endpoint}?latitude=\\${lat}&longitude=\\${lon}&elevation=\\${elevation}&hourly=\\${hourly}&timezone=auto&start_date=\\${s.date}&end_date=\\${end}\\`;');
+  document.open();document.write(html);document.close();
+ }catch(e){document.body.innerHTML='<div class="loading" style="color:#ffc1b1">'+String(e.message||e)+'</div>'}
+})();
+</script>
+</body>
+</html>
