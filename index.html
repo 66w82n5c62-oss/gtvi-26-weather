@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#081522">
-<title>GTVI 26 Weather App · Mobile v86</title>
+<title>GTVI 26 Weather App · Mobile v89</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
 :root {
@@ -176,7 +176,7 @@ header{display:flex;justify-content:space-between;gap:10px;align-items:center;ma
   border:1px solid #2d4a64;
   border-radius:8px;
   padding:0 8px;
-  font-size:14px;
+  font-size:10px;
   font-weight:850;
   font-variant-numeric:tabular-nums;
   letter-spacing:.02em;
@@ -1116,6 +1116,17 @@ details[open] > summary::before{
 .alongHighlight b{font-size:10px!important;color:#9ed7fa!important}
 @media(max-width:360px){.alongHighlight{flex-basis:84%}}
 
+
+/* v89: keep custom rain/shower icons at the same visual scale as the other weather icons on every stage. */
+.wxIcon .rainIntensityWxIcon{
+  width:40px;
+  height:40px;
+  display:block;
+  flex:0 0 40px;
+}
+@media(max-width:370px){
+  .wxIcon .rainIntensityWxIcon{width:37px;height:37px;flex-basis:37px}
+}
 </style>
 </head>
 <body>
@@ -1391,7 +1402,18 @@ function cycleSunRainIcon(){
      <path d="M37 34 C35.7 36 35.7 38 37 39.2 C38.3 38 38.3 36 37 34 Z"/>
    </svg></span>`;
 }
-const WICON=c=>c>=95?"⛈️":c>=80?cycleSunRainIcon():c>=61?"🌧️":c>=51?cycleSunRainIcon():c>=45?"🌫️":c===0?cycleSunIcon(false):c<=2?cycleSunIcon(true):"☁️";
+function rainIntensityIcon(showery,intensity){
+  const n=Math.max(1,Math.min(3,intensity||1));
+  const drops=[
+    '<path d="M24 31 C22.8 33 22.9 35 24 36.1 C25.1 35 25.2 33 24 31 Z"/>',
+    '<path d="M17 31 C15.8 33 15.9 35 17 36.1 C18.1 35 18.2 33 17 31 Z"/><path d="M31 31 C29.8 33 29.9 35 31 36.1 C32.1 35 32.2 33 31 31 Z"/>',
+    '<path d="M14 30 C12.6 32.4 12.7 35 14 36.4 C15.3 35 15.4 32.4 14 30 Z"/><path d="M24 31 C22.6 33.4 22.7 36 24 37.4 C25.3 36 25.4 33.4 24 31 Z"/><path d="M34 30 C32.6 32.4 32.7 35 34 36.4 C35.3 35 35.4 32.4 34 30 Z"/>'
+  ][n-1];
+  const wheel=showery?`<g fill="none" stroke="#f2c75c" stroke-width="1.7" stroke-linecap="round" opacity=".95"><circle cx="14" cy="14" r="7"/><circle cx="14" cy="14" r="2.2"/><path d="M14 4V8M14 20V24M4 14H8M20 14H24M7 7L10 10M18 18L21 21M21 7L18 10M10 18L7 21"/></g>`:'';
+  const cloudFill=n===3?'#8193a3':n===2?'#9aaaba':'#b7c5d1';
+  return `<svg class="rainIntensityWxIcon" viewBox="0 0 48 48" aria-hidden="true">${wheel}<g><path d="M14 27c0-4.7 3.8-8.5 8.5-8.5 3.2 0 6 1.8 7.5 4.4.8-.4 1.8-.6 2.8-.6 3.7 0 6.7 2.9 6.7 6.5S36.5 35 32.8 35H15.7C11.4 35 8 31.8 8 27.9c0-3.3 2.4-6 5.7-6.8.1 0 .2 0 .3-.1" fill="${cloudFill}" stroke="#dce7ef" stroke-width="1.2"/></g><g fill="#65bff1">${drops}</g></svg>`;
+}
+const WICON=c=>c>=95?"⛈️":c===82?rainIntensityIcon(true,3):c===81?rainIntensityIcon(true,2):c>=80?rainIntensityIcon(true,1):c>=65?rainIntensityIcon(false,3):c>=63?rainIntensityIcon(false,2):c>=61?rainIntensityIcon(false,1):c>=51?rainIntensityIcon(false,1):c>=45?"🌫️":c===0?cycleSunIcon(false):c<=2?cycleSunIcon(true):"☁️";
 document.querySelectorAll(".sunriseWheelIcon").forEach(el=>el.innerHTML=cycleSunIcon(false));
 if(document.getElementById("mSkyIcon")) document.getElementById("mSkyIcon").innerHTML=cycleSunIcon(true);
 
@@ -1473,11 +1495,21 @@ function updateBreakUI(s=stage()){
 }
 function fmtDate(s){return new Date(s+"T12:00:00").toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"})}
 function setToday(){
- const n=new Date();
- if(n.getFullYear()===2026&&n.getMonth()===8){
-   const map={12:"D1",13:"D2",14:"D3",15:"D4",16:"D5A",17:"D6",18:"D7"};
-   if(map[n.getDate()])activeKey=map[n.getDate()];
- }
+ try{
+   const parts=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Vienna",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date());
+   const o={};parts.forEach(p=>{if(p.type!=="literal")o[p.type]=p.value});
+   const iso=`${o.year}-${o.month}-${o.day}`;
+   const map={
+     "2026-09-12":"D1",
+     "2026-09-13":"D2",
+     "2026-09-14":"D3",
+     "2026-09-15":"D4",
+     "2026-09-16":"D5A",
+     "2026-09-17":"D6",
+     "2026-09-18":"D7"
+   };
+   if(map[iso])activeKey=map[iso];
+ }catch(e){}
 }
 setToday();
 
@@ -1996,12 +2028,27 @@ function bearingDeg(a,b){const r=x=>x*Math.PI/180,d=x=>x*180/Math.PI,p1=r(a.lat)
 function routeBearingAtKm(s,km){const line=s.line||[];if(line.length<2)return null;let i=line.findIndex(p=>p.km>=km);if(i<=0)i=1;if(i>=line.length)i=line.length-1;return bearingDeg(line[i-1],line[i]);}
 function circularMeanDeg(v){v=v.filter(Number.isFinite);if(!v.length)return null;const sy=v.reduce((a,d)=>a+Math.sin(d*Math.PI/180),0),sx=v.reduce((a,d)=>a+Math.cos(d*Math.PI/180),0);return(Math.atan2(sy,sx)*180/Math.PI+360)%360;}
 function windEffectLabel(rb,wf,ws){if(!Number.isFinite(rb)||!Number.isFinite(wf)||!Number.isFinite(ws))return null;if(ws<4)return{label:"Light / little effect"};const wt=(wf+180)%360,d=((wt-rb+540)%360)-180,f=Math.cos(d*Math.PI/180);let label="Crosswind";if(f>=.70)label="Tailwind";else if(f>=.20)label="Cross-tailwind";else if(f<=-.70)label="Headwind";else if(f<=-.20)label="Cross-headwind";return{label};}
+function consensusPrecipCondition(b,cp){
+ const rs=b.forecasts.filter(Boolean);
+ const need=Math.max(1,Math.ceil(rs.length/2));
+ const thunder=rs.filter(r=>r.code>=95).length>=need;
+ if(thunder)return {code:95,text:"Thunderstorms",wet:true};
+ const showerVotes=rs.filter(r=>r.code>=80&&r.code<=82).length;
+ const rainVotes=rs.filter(r=>r.code>=51&&r.code<=67).length;
+ const wetVotes=rs.filter(wet).length;
+ if(wetVotes<need && !(Number.isFinite(cp.precip)&&cp.precip>=0.2))return {code:rs[0]?.code??3,text:WDESC[rs[0]?.code??3]||"Dry",wet:false};
+ const p=Number.isFinite(cp.precip)?cp.precip:0;
+ const intensity=p>=2.5?"Heavy":p>=0.5?"Moderate":"Light";
+ const shower=showerVotes>=rainVotes;
+ const code=shower?(intensity==="Heavy"?82:intensity==="Moderate"?81:80):(intensity==="Heavy"?65:intensity==="Moderate"?63:61);
+ return {code,text:`${intensity} ${shower?"showers":"rain"}`,wet:true};
+}
+
 function renderTimelineFromBundles(bundles,s){
  const stillLoading=anyDeterministicPending(s);const currentIdx=currentRoutePointIndex(bundles,s);
  document.getElementById("timeline").innerHTML=bundles.map((b,idx)=>{const rs=b.forecasts.filter(Boolean),disp=rs[0]||b.best;const activeClass=idx===currentIdx?" currentRoutePoint":"",badge=idx===currentIdx?`<span class="routePointBadge">NEXT</span>`:"";if(!disp){const status=stillLoading?"Loading forecast…":"Forecast not yet in range";return `<div class="stop${activeClass}"><div class="stopPlace">${b.p.label==="Start"?s.start:b.p.label==="Finish"?s.finish:b.p.label}${badge}</div><div class="stopMeta">${b.p.km} km · ${b.p.ele} m · ~${rideClock(b.p.ride_h,s,b.p.km)}</div><div class="risk">${status}</div></div>`}
  const cp=bundleSummaryPoint(b,s,idx),meanT=Math.round(cp.temp),wind=Math.round(cp.wind),gust=Math.round(cp.gust),prob=cp.rainProb,meanWindDir=cp.wdir,routeBearing=routeBearingAtKm(s,b.p.km),windEffect=windEffectLabel(routeBearing,meanWindDir,wind);
- const wetN=rs.filter(wet).length,need=Math.max(1,Math.ceil(rs.length/2)),thunderN=rs.filter(x=>x.code>=95).length,thunder=thunderN>=need,wetConsensus=wetN>=need;
- const code=thunder?95:wetConsensus?80:wetN>0?80:disp.code,cond=thunder?"Thunder":wetConsensus?"Rain/showers":wetN>0?"Possible shower":WDESC[code]||"Dry",cclass=thunder?"danger":wetConsensus?"rainWet":"";
+ const precipCond=consensusPrecipCondition(b,cp),code=precipCond.code,cond=precipCond.text,cclass=code>=95?"danger":precipCond.wet?"rainWet":"";
  const detail=MODELS.map(md=>{const r=b.forecasts.find(x=>x&&x.source.id===md.id);if(r){let rainProb=Number.isFinite(r.rain)?Math.round(r.rain)+"%":"—";if(md.id==="ecmwf"&&!Number.isFinite(r.rain)){const ep=pointEnsembleRainProbability(ensembleCache[s.key],s,b.p,idx);if(Number.isFinite(ep))rainProb=ep+"% ENS";}return `<div class="modelRow"><b>${md.label}</b><span>${Math.round(r.temp)}°</span><span>Rain ${r.precip.toFixed(1)} mm/h · ${rainProb}</span><span>${Math.round(r.wind)} / ${Math.round(r.gust)} km/h</span></div>`;}if(isResultPending(s,md.id))return `<div class="modelRow"><b>${md.label}</b><span>…</span><span>loading…</span><span>…</span></div>`;return `<div class="modelRow"><b>${md.label}</b><span>—</span><span>not in range</span><span>—</span></div>`}).join("");
  return `<div class="stop${activeClass}"><div class="stopMain"><div><div class="stopPlace"><span class="stopName">${b.p.label==="Start"?s.start:b.p.label==="Finish"?s.finish:b.p.label}</span>${badge}</div><div class="stopMeta">${b.p.km} km · ${b.p.ele} m · ~${rideClock(b.p.ride_h,s,b.p.km)}</div></div><div class="pointWeather"><div class="pointCondition"><div class="wxIcon" aria-hidden="true">${WICON(code)}</div><div class="conditionText">${cond}</div></div><div class="pointMetrics"><div class="pointMetricRow"><span class="pointMetricLabel">Temp</span><span class="pointMetricValue">${meanT}°</span></div><div class="pointMetricRow"><span class="pointMetricLabel">Rain</span><span class="pointMetricValue ${cclass}">${prob==null?"—":Math.round(prob)+"%"}</span></div><div class="pointMetricRow"><span class="pointMetricLabel">Wind</span><span class="pointMetricValue">${wind} km/h</span></div><div class="pointGust">gust ${gust} km/h</div>${windEffect?`<div class="pointGust pointWindEffect">${windEffect.label}</div>`:""}</div></div></div><details><summary>${b.conf.label.replace(" forecast consensus"," consensus")} · show detail</summary><div class="modelGrid">${detail}</div></details></div>`}).join("");renderWorstHighlights(bundles,s);
 }
