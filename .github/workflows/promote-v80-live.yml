@@ -1,0 +1,44 @@
+name: Promote v80 live
+
+on:
+  push:
+    paths:
+      - '.github/workflows/promote-v80-live.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Promote preview v80 to live
+        shell: bash
+        run: |
+          cp preview-v80.html index.html
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          s=s.replace('<title>GTVI 26 Weather App · Mobile v80 Preview</title>', '<title>GTVI 26 Weather App · Mobile v80</title>', 1)
+          p.write_text(s,encoding='utf-8')
+          PY
+          python3 - <<'PY' > /tmp/v80-live-check.js
+          import re
+          s=open('index.html',encoding='utf-8').read()
+          print('\n'.join(re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,re.S)))
+          PY
+          node --check /tmp/v80-live-check.js
+          grep -q 'Mobile v80</title>' index.html
+          grep -q 'windEffect.label' index.html
+          grep -q 'spreadOrder={Sunshine:0,Temperature:1,Rain:2,Wind:3}' index.html
+          ! grep -Eq '☀️|☀|🌤️|⛅|🌞|🌥️|🌦️' index.html
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git commit -m 'Promote v80 to live'
+          git push origin main
