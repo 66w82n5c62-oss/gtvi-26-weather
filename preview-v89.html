@@ -1495,11 +1495,21 @@ function updateBreakUI(s=stage()){
 }
 function fmtDate(s){return new Date(s+"T12:00:00").toLocaleDateString("en-GB",{weekday:"long",day:"numeric",month:"long"})}
 function setToday(){
- const n=new Date();
- if(n.getFullYear()===2026&&n.getMonth()===8){
-   const map={12:"D1",13:"D2",14:"D3",15:"D4",16:"D5A",17:"D6",18:"D7"};
-   if(map[n.getDate()])activeKey=map[n.getDate()];
- }
+ try{
+   const parts=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Vienna",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date());
+   const o={};parts.forEach(p=>{if(p.type!=="literal")o[p.type]=p.value});
+   const iso=`${o.year}-${o.month}-${o.day}`;
+   const map={
+     "2026-09-12":"D1",
+     "2026-09-13":"D2",
+     "2026-09-14":"D3",
+     "2026-09-15":"D4",
+     "2026-09-16":"D5A",
+     "2026-09-17":"D6",
+     "2026-09-18":"D7"
+   };
+   if(map[iso])activeKey=map[iso];
+ }catch(e){}
 }
 setToday();
 
