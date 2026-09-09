@@ -1,0 +1,40 @@
+name: Publish v89 preview
+on:
+  push:
+    paths:
+      - '.github/workflows/publish-v89.yml'
+      - '.github/v89-builder.py'
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Build and check
+        run: |
+          python3 .github/v89-builder.py
+          python3 - <<'PY' > /tmp/v89-check.js
+          import re
+          s=open('preview-v89.html',encoding='utf-8').read()
+          print('\n'.join(re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,re.S)))
+          PY
+          node --check /tmp/v89-check.js
+          grep -q 'Mobile v89 Preview' preview-v89.html
+          grep -q 'rainIntensityWxIcon' preview-v89.html
+          grep -q 'width:40px' preview-v89.html
+          ! grep -Eq '☀️|☀|🌤️|⛅|🌞|🌥️|🌦️' preview-v89.html
+      - name: Publish preview
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add preview-v89.html
+          if git diff --cached --quiet; then
+            echo 'preview-v89.html already up to date'
+            exit 0
+          fi
+          git commit -m 'Publish v89 full-size rain icon preview'
+          git push origin main
