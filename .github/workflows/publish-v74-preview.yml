@@ -1,0 +1,75 @@
+name: Publish v74 preview
+
+on:
+  push:
+    paths:
+      - '.github/workflows/publish-v74-preview.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Build v74 preview
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          src=Path('preview-v73.html')
+          dst=Path('preview-v74.html')
+          s=src.read_text()
+          s=s.replace('<title>GTVI 26 Weather App · Mobile v73 Preview</title>','<title>GTVI 26 Weather App · Mobile v74 Preview</title>',1)
+
+          anchor='function ensembleStageRisk(data,s){\n'
+          helper='''function pointEnsembleRainProbability(data,s,p,idx){
+           if(!Array.isArray(data)||!data.length)return null;
+           const model=String(data._ensembleModel||"");
+           if(!model.startsWith("ecmwf_"))return null;
+           const h=(data[idx]||data[0])?.hourly;if(!h)return null;
+           const ti=nearestISO(h.time,arrivalInfo(p.ride_h,s,p.km).iso);if(ti<0)return null;
+           const vals=ensembleKeys(h,"precipitation").map(k=>num(h[k]?.[ti])).filter(Number.isFinite);
+           if(vals.length<10)return null;
+           return Math.round(100*vals.filter(v=>v>=0.2).length/vals.length);
+          }
+
+          function ensembleStageRisk(data,s){
+          '''
+          if anchor not in s: raise SystemExit('ensembleStageRisk anchor missing')
+          s=s.replace(anchor,helper,1)
+
+          old='''       if(r){
+                 const rainProb=Number.isFinite(r.rain)?Math.round(r.rain)+"%":"—";
+                 return `<div class="modelRow"><b>${md.label}</b><span>${Math.round(r.temp)}°</span><span>${r.precip.toFixed(1)} mm/h · ${rainProb}</span><span>${Math.round(r.wind)} / ${Math.round(r.gust)} km/h</span></div>`;
+               }
+          '''
+          new='''       if(r){
+                 let rainProb=Number.isFinite(r.rain)?Math.round(r.rain)+"%":"—";
+                 if(md.id==="ecmwf"&&!Number.isFinite(r.rain)){
+                   const ep=pointEnsembleRainProbability(ensembleCache[s.key],s,b.p,idx);
+                   if(Number.isFinite(ep))rainProb=ep+"% ENS";
+                 }
+                 return `<div class="modelRow"><b>${md.label}</b><span>${Math.round(r.temp)}°</span><span>Rain ${r.precip.toFixed(1)} mm/h · ${rainProb}</span><span>${Math.round(r.wind)} / ${Math.round(r.gust)} km/h</span></div>`;
+               }
+          '''
+          if old not in s: raise SystemExit('model detail block missing')
+          s=s.replace(old,new,1)
+          dst.write_text(s)
+          PY
+          node --check <(python3 - <<'PY'
+          from pathlib import Path
+          import re
+          s=Path('preview-v74.html').read_text()
+          print('\n'.join(re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,re.S)))
+          PY
+          )
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add preview-v74.html
+          git commit -m 'Publish v74 preview with ECMWF ensemble rain probability'
+          git push origin main
