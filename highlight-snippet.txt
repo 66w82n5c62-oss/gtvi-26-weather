@@ -1,0 +1,461 @@
+
+===== renderWorstHighlights =====
+,s,p.km);return {date:a.date,minutes:parseClock(a.time),time:a.time}}
+function currentRoutePointIndex(bundles,s){const now=localViennaNowParts();if(now.date!==s.date)return -1;for(let i=0;i<bundles.length;i++){const a=pointArrivalMinutes(bundles[i].p,s);if(a.date===now.date&&a.minutes>=now.minutes)return i}return -1}
+function bundleSummaryPoint(b,s){const rs=b.forecasts.filter(Boolean),disp=rs[0]||b.best;if(!disp)return null;const rains=rs.map(x=>x.rain).filter(Number.isFinite),precip=rs.map(x=>x.precip).filter(Number.isFinite),gusts=rs.map(x=>x.gust).filter(Number.isFinite),temps=rs.map(x=>x.temp).filter(Number.isFinite);const rainProb=Number.isFinite(b.best?.rain)?b.best.rain:(rains.length?Math.max(...rains):null);const meanPrecip=precip.length?precip.reduce((a,c)=>a+c,0)/precip.length:(Number.isFinite(disp.precip)?disp.precip:0);const gust=gusts.length?gusts.reduce((a,c)=>a+c,0)/gusts.length:(Number.isFinite(disp.gust)?disp.gust:0);const temp=temps.length?temps.reduce((a,c)=>a+c,0)/temps.length:(Number.isFinite(disp.temp)?disp.temp:null);const a=pointArrivalMinutes(b.p,s);return {km:b.p.km,time:a.time,rainProb,precip:meanPrecip,gust,temp}}
+function forecastSnapshot(bundles,s){const pts=bundles.map(b=>bundleSummaryPoint(b,s)).filter(Boolean);if(!pts.length)return null;const rainMax=Math.max(...pts.map(p=>Number.isFinite(p.rainProb)?p.rainProb:0)),precipMax=Math.max(...pts.map(p=>Number.isFinite(p.precip)?p.precip:0)),gustMax=Math.max(...pts.map(p=>Number.isFinite(p.gust)?p.gust:0)),temps=pts.map(p=>p.temp).filter(Number.isFinite);return {ts:Date.now(),rainMax:Math.round(rainMax),precipMax:Number(precipMax.toFixed(2)),gustMax:Math.round(gustMax),tempMin:temps.length?Math.round(Math.min(...temps)):null,tempMax:temps.length?Math.round(Math.max(...temps)):null}}
+function renderWorstHighlights(bundles,s){const el=document.getElementById("alongHighlights");if(!el)return;const pts=bundles.map(b=>bundleSummaryPoint(b,s)).filter(Boolean);if(!pts.length){el.innerHTML="";return}const wettest=pts.reduce((a,p)=>{const score=(Number.isFinite(p.rainProb)?p.rainProb:0)+(Number.isFinite(p.precip)?p.precip*20:0);return !a||score>a.score?{...p,score}:a},null);const gustiest=pts.reduce((a,p)=>!a||p.gust>a.gust?p:a,null);const wetDetail=(Number.isFinite(wettest.rainProb)&&wettest.rainProb>0)?`${Math.round(wettest.rainProb)}% rain`:(wettest.precip>=0.1?`${wettest.precip.toFixed(1)} mm/h`:"little rain signal");el.innerHTML=`<div class="alongHighlight"><b>Wettest</b>${wettest.time} · around ${Math.round(wettest.km)} km · ${wetDetail}</div>`}
+function changeText(current,previous){if(!current||!previous)return "Baseline saved for next refresh";const bits=[],rainDelta=current.rainMax-previous.rainMax,gustDelta=current.gustMax-previous.gustMax,tempMid=((current.tempMin??0)+(current.tempMax??0))/2,prevMid=((previous.tempMin??0)+(previous.tempMax??0))/2,tempDelta=tempMid-prevMid;if(Math.abs(rainDelta)>=10)bits.push(`Rain risk ${rainDelta>0?"↑":"↓"}`);else bits.push("Rain risk unchanged");if(Math.abs(gustDelta)>=5)bits.push(`Wind ${gustDelta>0?"↑":"↓"}`);else bits.push("Wind unchanged");if(Math.abs(tempDelta)>=2)bits.push(`Temperature ${tempDelta>0?"↑":"↓"}`);return bits.join(" · ")}
+function formatUpdatedTime(ts){try{return new Intl.DateTimeFormat("en-GB",{timeZone:"Europe/Vienna",hour:"2-digit",minute:"2-digit",hour12:false}).format(new Date(ts))}catch(e){return new Date(ts).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}}
+function renderFreshness(ts,offline=false){const el=document.getElementById("forecastFreshness");if(!el)return;el.classList.toggle("offline",offline);el.textContent=ts?(offline?`Offline · Last updated ${formatUpdatedTime(ts)}`:`Updated ${formatUpdatedTime(ts)}`):""}
+function captureOfflineUI(s,snapshot){return {ts:snapshot?.ts||Date.now(),snapshot,outlook:document.getElementById("outlook").textContent,explain:document.getElementById("explain").textContent,agreementText:document.getElementById("agreement").textContent,agreementClass:document.getElementById("agreement").className,mTemp:document.getElementById("mTemp").textContent,mSkyIcon:document.getElementById("mSkyIcon").innerHTML,mSkySub:document.getElementById("mSkySub").textContent,mRain:document.getElementById("mRain").textContent,mRainSub:document.getElementById("mRainSub").textContent,mWind:document.getElementById("mWind").textContent,mWindSub:document.getElementById("mWindSub").textContent,ensembleRisk:document.getElementById("ensembleRisk").innerHTML,highlights:document.getElementById("alongHighlights").innerHTML,change:document.getElementById("forecastChange").textContent,timeline:document.getElementById("timeline").innerHTML}}
+function restoreOfflineUI(s,cached){if(!cached)return false;document.getElementById("outlook").textContent=cached.outlook||"Last saved forecast";document.getElementById("explain").textContent=cached.explain||"Showing the most recent saved forecast.";const ag=document.getElementById("agreement");ag.textContent=cached.agreementText||"Saved forecast";ag.className=cached.agreementClass||"agree medium";document.getElementById("mTemp").textContent=cached.mTemp||"—";document.getElementById("mSkyIcon").innerHTML=cached.mSkyIcon||"";document.getElementById("mSkySub").textContent=cached.mSkySub||"";document.getElementById("mRain").textContent=cached.mRain||"—";document.getElementById("mRainSub").textContent=cached.mRainSub||"";document.getElementById("mWind").textContent=cached.mWind||"—";document.getElementById("mWindSub").textContent=cached.mWindSub||"";if(cached.ensembleRisk)document.getElementById("ensembleRisk").innerHTML=cached.ensembleRisk;document.getElementById("alongHighlights").innerHTML=cached.highlights||"";document.getElementById("forecastChange").textContent=cached.change||"Showing last saved forecast";document.getElementById("timeline").innerHTML=cached.timeline||"";renderFreshness(cached.ts,true);return true}
+
+function bearingDeg(a,b){const r=x=>x*Math.PI/180,d=x=>x*180/Math.PI,p1=r(a.lat),p2=r(b.lat),dl=r(b.lon-a.lon),y=Math.sin(dl)*Math.cos(p2),x=Math.cos(p1)*Math.sin(p2)-Math.sin(p1)*Math.cos(p2)*Math.cos(dl);return(d(Math.atan2(y,x))+360)%360;}
+function routeBearingAtKm(s,km){const line=s.line||[];if(line.length<2)return null;let i=line.findIndex(p=>p.km>=km);if(i<=0)i=1;if(i>=line.length)i=line.length-1;return bearingDeg(line[i-1],line[i]);}
+function circularMeanDeg(v){v=v.filter(Number.isFinite);if(!v.length)return null;const sy=v.reduce((a,d)=>a+Math.sin(d*Math.PI/180),0),sx=v.reduce((a,d)=>a+Math.cos(d*Math.PI/180),0);return(Math.atan2(sy,sx)*180/Math.PI+360)%360;}
+function windEffectLabel(rb,wf,ws){if(!Number.isFinite(rb)||!Number.isFinite(wf)||!Number.isFinite(ws))return null;if(ws<4)return{label:"Light / little effect"};const wt=(wf+180)%360,d=((wt-rb+540)%360)-180,f=M
+===== alongHighlights =====
+ padding:10px 12px 12px;
+  font-size:10px;
+  line-height:1.45;
+  color:#9bb1c2;
+}
+.aboutForecastBody p{margin:0 0 8px}
+.aboutForecastBody ul{
+  margin:0 0 8px 17px;
+  padding:0;
+}
+.aboutForecastBody li{margin:0 0 7px}
+.aboutForecastBody b{color:#dbe9f4}
+.aboutForecastFoot{
+  margin-bottom:0!important;
+  color:#94a9ba;
+  font-size:9.5px;
+}
+
+#startTime{
+  font-size:13px;
+}
+
+
+/* Unified expand/collapse treatment */
+details > summary{
+  position:relative;
+  list-style:none;
+  cursor:pointer;
+  padding-left:20px;
+}
+details > summary::-webkit-details-marker{
+  display:none;
+}
+details > summary::marker{
+  content:"";
+}
+details > summary::before{
+  content:"▸";
+  position:absolute;
+  left:0;
+  top:50%;
+  transform:translateY(-50%);
+  color:var(--muted);
+  font-size:17px;
+  line-height:1;
+}
+details[open] > summary::before{
+  content:"▾";
+}
+
+
+.weatherDayTitleMatch{
+  font-size:18px !important;
+  font-weight:800;
+  color:var(--text);
+  letter-spacing:-.01em;
+}
+
+
+.cycleSunRainWrap{
+  position:relative;
+  display:inline-block;
+  width:32px;
+  height:32px;
+}
+.cycleSunRainWrap .cycleSunIcon{
+  position:absolute;
+  inset:0;
+}
+.cycleRainOverlay{
+  position:absolute;
+  inset:0;
+  width:32px;
+  height:32px;
+  pointer-events:none;
+}
+.cycleRainOverlay path{
+  fill:#58b7f4;
+}
+
+.sunriseWheelIcon{
+  display:inline-flex;
+  width:18px;
+  height:18px;
+  vertical-align:-4px;
+}
+.sunriseWheelIcon .cycleSunIcon{
+  width:18px;
+  height:18px;
+}
+
+
+.mobileTimeInput{
+  padding:0 2px;
+  line-height:34px;
+}
+.mobileTimeInput::-webkit-datetime-edit,
+.mobileTimeInput::-webkit-datetime-edit-fields-wrapper,
+.mobileTimeInput::-webkit-datetime-edit-hour-field,
+.mobileTimeInput::-webkit-datetime-edit-minute-field,
+.mobileTimeInput::-webkit-datetime-edit-text{
+  font-size:12px;
+  line-height:34px;
+  padding:0;
+}
+
+
+.alongHighlights{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:0 0 7px}
+.alongHighlight{min-width:0;padding:7px 8px;border:1px solid #284a65;border-radius:9px;background:#0c2236;color:#dce9f3;font-size:9px;line-height:1.25}
+.alongHighlight b{display:block;margin-bottom:2px;font-size:9px;color:#8fcdf2;text-transform:uppercase;letter-spacing:.04em}
+.alongStatusRow{display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:16px;margin:0 1px 8px}
+.forecastChange,.forecastFreshness{font-size:8.5px;line-height:1.2;color:#83a2b8}
+.forecastChange{font-weight:700}.forecastFreshness{text-align:right;white-space:nowrap}
+.forecastFreshness.offline{color:#ffd089;font-weight:800}
+.stop.currentRoutePoint{border-color:#6bc7f5;box-shadow:0 0 0 1px rgba(107,199,245,.2);background:#102b40}
+.routePointBadge{display:inline-block;margin-left:6px;padding:2px 5px;border-radius:999px;background:#58b7f4;color:#06101b;font-size:7px;font-weight:900;letter-spacing:.05em;vertical-align:1px}
+@media(max-width:360px){.alongHighlights{grid-template-columns:1fr}.alongStatusRow{align-items:flex-start;flex-direction:column;gap:3px}.forecastFreshness{text-align:left}}
+
+
+/* v76: slightly brighter secondary text for improved mobile readability */
+.date,.metricSub,.timeHint,.breakSub,.breakSummary,.consensusHint,.mobileWayTitle .wayTimingInline,.mobileSunCompact,.mobilePlanNote,.stopMeta,.pointMetricLabel,.pointGust,.aboutForecastBody,.aboutForecastFoot{filter:brightness(1.08);}
+
+
+.pointWindEffect{
+  font-size:10px;
+  color:#f4f8fc;
+  font-weight:800;
+}
+
+</style>
+</head>
+<body>
+<div class="app">
+<div class="appTitle">GTVI 26 Weather App <span style="font-size:11px;color:#94a9ba;font-weight:700">Mobile</span></div>
+<header>
+  <div class="brand">Vienna → Pula <small>Live route forecasts · 12–18 Sep 2026</small></div>
+  <button id="refresh" class="refresh">↻ Refresh</button>
+</header>
+
+<div id="days" class="days"></div>
+
+<section class="hero mobileHero">
+  <div class="eyebrow weatherDayTitle weatherDayTitleMatch" id="stageLabel">Weather for the day</div>
+
+  <div class="mobileRouteHead">
+    <div class="mobileRouteCopy">
+      <h1 id="stageTitle"></h1>
+      <div class="date" id="stageDate"></div>
+      <div class="mobileSunCompact" id="sunStrip">
+        <span><span class="sunriseWheelIcon" aria-hidden="true"></span> <b id="sunStartRise">—</b></span>
+        <span>·</span>
+        <span>◐ <b id="sunEndSet">—</b></span>
+      </div>
+    </div>
+    <div class="consensusStack">
+      <span id="agreement" class="agree medium">Loading</span>
+      <div class="consensusHint">Accuracy improves as the ride day approaches — refresh regularly.</div>
+    </div>
+  </div>
+
+  <div id="outlook" class="outlook">Loading forecast…</div>
+  <div id="explain" class="explain">Comparing three forecasts along your actual route.</div>
+
+  <div class="metrics mobileWeatherMetrics mobileWeatherThree">
+    <div class="metric mobileWeatherCard">
+      <div class="weatherGlyph" id="mSkyIcon" aria-hidden="true"></div>
+      <div class="weatherCardText">
+        <div class="label">Temperature</div>
+        <div class="value" id="mTemp">—</div>
+        <div class="metricSub" id="mSkySub">Sun / cloud loading…</div>
+      </div>
+    </div>
+    <div class="metric mobileWeatherCard">
+      <div class="weatherGlyph" id="mRainIcon" aria-hidden="true">☁️</div>
+      <div class="weatherCardText">
+        <div class="label">Rain</div>
+        <div class="value" id="mRain">—</div>
+        <div class="metricSub" id="mRainSub"></div>
+      </div>
+    </div>
+    <div class="metric mobileWeatherCard">
+      <div class="weatherGlyph" aria-hidden="true">💨</div>
+      <div class="weatherCardText">
+        <div class="label">Wind</div>
+        <div class="value" id="mWind">—</div>
+        <div class="metricSub" id="mWindSub"></div>
+      </div>
+    </div>
+    <span id="mHigh" hidden aria-hidden="true"></span>
+  </div>
+
+  <details class="mobileRiskDisclosure">
+    <summary>Forecast spread</summary>
+    <div class="forecastSources">
+      <div><span>Forecasts compared</span> ECMWF IFS · DWD ICON · NOAA GFS</div>
+      <div><span>Range</span> ECMWF ensemble</div>
+    </div>
+    <div id="ensembleRisk" class="riskRows ensembleRiskRows">
+      <div class="riskRow"><div class="riskRowTitle">Wind</div><div class="riskMain">Loading…</div></div>
+      <div class="riskRow"><div class="riskRowTitle">Temperature</div><div class="riskMain">Loading…</div></div>
+      <div class="riskRow"><div class="riskRowTitle">Rain</div><div class="riskMain">Loading…</div></div>
+    </div>
+  </details>
+
+  <details class="mobileRidePlan mobileRideDisclosure">
+    <summary>Ride plan</summary>
+    <div class="mobileRidePlanInner">
+
+    <div class="mobileControlRow">
+      <div class="mobileControlCard">
+        <div class="mobileLabel">WHEELS ROLLING</div>
+        <div class="mobileStepper">
+          <button id="timeBack" class="mobileStep" type="button" aria-label="Start 15 minutes earlier">‹</butt
+===== forecastChange =====
+or:pointer;
+  padding-left:20px;
+}
+details > summary::-webkit-details-marker{
+  display:none;
+}
+details > summary::marker{
+  content:"";
+}
+details > summary::before{
+  content:"▸";
+  position:absolute;
+  left:0;
+  top:50%;
+  transform:translateY(-50%);
+  color:var(--muted);
+  font-size:17px;
+  line-height:1;
+}
+details[open] > summary::before{
+  content:"▾";
+}
+
+
+.weatherDayTitleMatch{
+  font-size:18px !important;
+  font-weight:800;
+  color:var(--text);
+  letter-spacing:-.01em;
+}
+
+
+.cycleSunRainWrap{
+  position:relative;
+  display:inline-block;
+  width:32px;
+  height:32px;
+}
+.cycleSunRainWrap .cycleSunIcon{
+  position:absolute;
+  inset:0;
+}
+.cycleRainOverlay{
+  position:absolute;
+  inset:0;
+  width:32px;
+  height:32px;
+  pointer-events:none;
+}
+.cycleRainOverlay path{
+  fill:#58b7f4;
+}
+
+.sunriseWheelIcon{
+  display:inline-flex;
+  width:18px;
+  height:18px;
+  vertical-align:-4px;
+}
+.sunriseWheelIcon .cycleSunIcon{
+  width:18px;
+  height:18px;
+}
+
+
+.mobileTimeInput{
+  padding:0 2px;
+  line-height:34px;
+}
+.mobileTimeInput::-webkit-datetime-edit,
+.mobileTimeInput::-webkit-datetime-edit-fields-wrapper,
+.mobileTimeInput::-webkit-datetime-edit-hour-field,
+.mobileTimeInput::-webkit-datetime-edit-minute-field,
+.mobileTimeInput::-webkit-datetime-edit-text{
+  font-size:12px;
+  line-height:34px;
+  padding:0;
+}
+
+
+.alongHighlights{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:0 0 7px}
+.alongHighlight{min-width:0;padding:7px 8px;border:1px solid #284a65;border-radius:9px;background:#0c2236;color:#dce9f3;font-size:9px;line-height:1.25}
+.alongHighlight b{display:block;margin-bottom:2px;font-size:9px;color:#8fcdf2;text-transform:uppercase;letter-spacing:.04em}
+.alongStatusRow{display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:16px;margin:0 1px 8px}
+.forecastChange,.forecastFreshness{font-size:8.5px;line-height:1.2;color:#83a2b8}
+.forecastChange{font-weight:700}.forecastFreshness{text-align:right;white-space:nowrap}
+.forecastFreshness.offline{color:#ffd089;font-weight:800}
+.stop.currentRoutePoint{border-color:#6bc7f5;box-shadow:0 0 0 1px rgba(107,199,245,.2);background:#102b40}
+.routePointBadge{display:inline-block;margin-left:6px;padding:2px 5px;border-radius:999px;background:#58b7f4;color:#06101b;font-size:7px;font-weight:900;letter-spacing:.05em;vertical-align:1px}
+@media(max-width:360px){.alongHighlights{grid-template-columns:1fr}.alongStatusRow{align-items:flex-start;flex-direction:column;gap:3px}.forecastFreshness{text-align:left}}
+
+
+/* v76: slightly brighter secondary text for improved mobile readability */
+.date,.metricSub,.timeHint,.breakSub,.breakSummary,.consensusHint,.mobileWayTitle .wayTimingInline,.mobileSunCompact,.mobilePlanNote,.stopMeta,.pointMetricLabel,.pointGust,.aboutForecastBody,.aboutForecastFoot{filter:brightness(1.08);}
+
+
+.pointWindEffect{
+  font-size:10px;
+  color:#f4f8fc;
+  font-weight:800;
+}
+
+</style>
+</head>
+<body>
+<div class="app">
+<div class="appTitle">GTVI 26 Weather App <span style="font-size:11px;color:#94a9ba;font-weight:700">Mobile</span></div>
+<header>
+  <div class="brand">Vienna → Pula <small>Live route forecasts · 12–18 Sep 2026</small></div>
+  <button id="refresh" class="refresh">↻ Refresh</button>
+</header>
+
+<div id="days" class="days"></div>
+
+<section class="hero mobileHero">
+  <div class="eyebrow weatherDayTitle weatherDayTitleMatch" id="stageLabel">Weather for the day</div>
+
+  <div class="mobileRouteHead">
+    <div class="mobileRouteCopy">
+      <h1 id="stageTitle"></h1>
+      <div class="date" id="stageDate"></div>
+      <div class="mobileSunCompact" id="sunStrip">
+        <span><span class="sunriseWheelIcon" aria-hidden="true"></span> <b id="sunStartRise">—</b></span>
+        <span>·</span>
+        <span>◐ <b id="sunEndSet">—</b></span>
+      </div>
+    </div>
+    <div class="consensusStack">
+      <span id="agreement" class="agree medium">Loading</span>
+      <div class="consensusHint">Accuracy improves as the ride day approaches — refresh regularly.</div>
+    </div>
+  </div>
+
+  <div id="outlook" class="outlook">Loading forecast…</div>
+  <div id="explain" class="explain">Comparing three forecasts along your actual route.</div>
+
+  <div class="metrics mobileWeatherMetrics mobileWeatherThree">
+    <div class="metric mobileWeatherCard">
+      <div class="weatherGlyph" id="mSkyIcon" aria-hidden="true"></div>
+      <div class="weatherCardText">
+        <div class="label">Temperature</div>
+        <div class="value" id="mTemp">—</div>
+        <div class="metricSub" id="mSkySub">Sun / cloud loading…</div>
+      </div>
+    </div>
+    <div class="metric mobileWeatherCard">
+      <div class="weatherGlyph" id="mRainIcon" aria-hidden="true">☁️</div>
+      <div class="weatherCardText">
+        <div class="label">Rain</div>
+        <div class="value" id="mRain">—</div>
+        <div class="metricSub" id="mRainSub"></div>
+      </div>
+    </div>
+    <div class="metric mobileWeatherCard">
+      <div class="weatherGlyph" aria-hidden="true">💨</div>
+      <div class="weatherCardText">
+        <div class="label">Wind</div>
+        <div class="value" id="mWind">—</div>
+        <div class="metricSub" id="mWindSub"></div>
+      </div>
+    </div>
+    <span id="mHigh" hidden aria-hidden="true"></span>
+  </div>
+
+  <details class="mobileRiskDisclosure">
+    <summary>Forecast spread</summary>
+    <div class="forecastSources">
+      <div><span>Forecasts compared</span> ECMWF IFS · DWD ICON · NOAA GFS</div>
+      <div><span>Range</span> ECMWF ensemble</div>
+    </div>
+    <div id="ensembleRisk" class="riskRows ensembleRiskRows">
+      <div class="riskRow"><div class="riskRowTitle">Wind</div><div class="riskMain">Loading…</div></div>
+      <div class="riskRow"><div class="riskRowTitle">Temperature</div><div class="riskMain">Loading…</div></div>
+      <div class="riskRow"><div class="riskRowTitle">Rain</div><div class="riskMain">Loading…</div></div>
+    </div>
+  </details>
+
+  <details class="mobileRidePlan mobileRideDisclosure">
+    <summary>Ride plan</summary>
+    <div class="mobileRidePlanInner">
+
+    <div class="mobileControlRow">
+      <div class="mobileControlCard">
+        <div class="mobileLabel">WHEELS ROLLING</div>
+        <div class="mobileStepper">
+          <button id="timeBack" class="mobileStep" type="button" aria-label="Start 15 minutes earlier">‹</button>
+          <input id="startTime" class="mobileTimeInput" type="text" value="08:30" inputmode="numeric" maxlength="5" pattern="[0-2][0-9]:[0-5][0-9]" aria-label="Exact start time in 24-hour HH:MM format">
+          <button id="timeForward" class="mobileStep" type="button" aria-label="Start 15 minutes later">›</button>
+        </div>
+      </div>
+
+      <div class="mobileControlCard">
+        <div class="mobileLabel">SPEED</div>
+        <div class="mobileStepper">
+          <
+===== currentRoutePointIndex =====
+oading…</div></div>
+ <div class="riskRow"><div class="riskRowTitle">Rain</div><div class="riskMain">Loading…</div></div>
+ <div class="riskRow"><div class="riskRowTitle">Wind</div><div class="riskMain">Loading…</div></div>`;
+ document.getElementById("timeline").innerHTML='<div class="stop">Fetching live route forecast…</div>';
+ updateBreakUI(s);
+ resetSunTimes(s);
+}
+function buildBundlesFromResults(results,s,useConsensus=false){
+ const bestRes=results.find(x=>x.src.id==="best");
+ const pick=useConsensus?consensusRow:row;
+ return s.samples.map((p,i)=>{
+   const forecasts=MODELS.map(md=>pick(results.find(x=>x.src.id===md.id),i,p,s));
+   const best=pick(bestRes,i,p,s);
+   return {p,forecasts,best,conf:confidence(forecasts,s.date)};
+ });
+}
+
+const FORECAST_STORE_PREFIX="gtvi26_forecast_v72_";
+let lastChangeTextByStage={};
+function forecastStoreKey(s){return FORECAST_STORE_PREFIX+s.key}
+function safeStoreGet(s){try{const raw=localStorage.getItem(forecastStoreKey(s));return raw?JSON.parse(raw):null}catch(e){return null}}
+function safeStoreSet(s,data){try{localStorage.setItem(forecastStoreKey(s),JSON.stringify(data));return true}catch(e){return false}}
+function localViennaNowParts(){try{const parts=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Vienna",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).formatToParts(new Date());const o={};parts.forEach(p=>{if(p.type!=="literal")o[p.type]=p.value});return {date:`${o.year}-${o.month}-${o.day}`,minutes:Number(o.hour)*60+Number(o.minute)}}catch(e){const d=new Date();return {date:d.toISOString().slice(0,10),minutes:d.getHours()*60+d.getMinutes()}}}
+function pointArrivalMinutes(p,s){const a=arrivalInfo(p.ride_h,s,p.km);return {date:a.date,minutes:parseClock(a.time),time:a.time}}
+function currentRoutePointIndex(bundles,s){const now=localViennaNowParts();if(now.date!==s.date)return -1;for(let i=0;i<bundles.length;i++){const a=pointArrivalMinutes(bundles[i].p,s);if(a.date===now.date&&a.minutes>=now.minutes)return i}return -1}
+function bundleSummaryPoint(b,s){const rs=b.forecasts.filter(Boolean),disp=rs[0]||b.best;if(!disp)return null;const rains=rs.map(x=>x.rain).filter(Number.isFinite),precip=rs.map(x=>x.precip).filter(Number.isFinite),gusts=rs.map(x=>x.gust).filter(Number.isFinite),temps=rs.map(x=>x.temp).filter(Number.isFinite);const rainProb=Number.isFinite(b.best?.rain)?b.best.rain:(rains.length?Math.max(...rains):null);const meanPrecip=precip.length?precip.reduce((a,c)=>a+c,0)/precip.length:(Number.isFinite(disp.precip)?disp.precip:0);const gust=gusts.length?gusts.reduce((a,c)=>a+c,0)/gusts.length:(Number.isFinite(disp.gust)?disp.gust:0);const temp=temps.length?temps.reduce((a,c)=>a+c,0)/temps.length:(Number.isFinite(disp.temp)?disp.temp:null);const a=pointArrivalMinutes(b.p,s);return {km:b.p.km,time:a.time,rainProb,precip:meanPrecip,gust,temp}}
+function forecastSnapshot(bundles,s){const pts=bundles.map(b=>bundleSummaryPoint(b,s)).filter(Boolean);if(!pts.length)return null;const rainMax=Math.max(...pts.map(p=>Number.isFinite(p.rainProb)?p.rainProb:0)),precipMax=Math.max(...pts.map(p=>Number.isFinite(p.precip)?p.precip:0)),gustMax=Math.max(...pts.map(p=>Number.isFinite(p.gust)?p.gust:0)),temps=pts.map(p=>p.temp).filter(Number.isFinite);return {ts:Date.now(),rainMax:Math.round(rainMax),precipMax:Number(precipMax.toFixed(2)),gustMax:Math.round(gustMax),tempMin:temps.length?Math.round(Math.min(...temps)):null,tempMax:temps.length?Math.round(Math.max(...temps)):null}}
+function renderWorstHighlights(bundles,s){const el=document.getElementById("alongHighlights");if(!el)return;const pts=bundles.map(b=>bundleSummaryPoint(b,s)).filter(Boolean);if(!pts.length){el.innerHTML="";return}const wettest=pts.reduce((a,p)=>{const score=(Number.isFinite(p.rainProb)?p.rainProb:0)+(Number.isFinite(p.precip)?p.precip*20:0);return !a||score>a.score?{...p,score}:a},null);const gustiest=pts.reduce((a,p)=>!a||p.gust>a.gust?p:a,null);const wetDetail=(Number.isFinite(wettest.rainProb)&&wettest.rainProb>0)?`${Math.round(wettest.rainProb)}% rain`:(wettest.precip>=0.1?`${wettest.precip.toFixed(1)} mm/h`:"little rain signal");el.innerHTML=`<div class="alongHighlight"><b>Wettest</b>${wettest.time} · around ${Math.round(wettest.km)} km · ${wetDetail}</div>`}
+function changeText(current,previous){if(!current||!previous)return "Baseline saved for next refresh";const bits=[],rainDelta=current.rainMax-previous.rainMax,gustDelta=current.gustMax-previous.gustMax,tempMid=((current.tempMin??0)+(current.tempMax??0))/2,prevMid=((previous.tempMin??0)+(previous.tempMax??0))/2,tempDelta=tempMid-prevMid;if(Math.abs(rainDelta)>=10)bits.push(`Rain risk ${rainDelta>0?"↑":"↓"}`);else bits.push("Rain risk unchanged");if(Math.abs(gustDelta)>=5)bits.push(`Wind ${gustDelta>0?"↑":"↓"}`);else bits.push("Wind unchanged");if(Math.abs(tempDelta)>=2)bits.push(`Temperature ${tempDelta>0?"↑":"↓"}`);return bits.join(" · ")}
+function formatUpdatedTime(ts){try{return new Intl.DateTimeFormat("en-GB",{timeZone:"Europe/Vienna",hour:"2-digit",minute:"2-digit",hour12:false}).format(new Date(ts))}catch(e){return new Date(ts).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}}
+function renderFreshness(ts,offline=false){const el=document.getElementById("forecastFreshness");if(!el)return;el.classList.toggle("offline",offline);el.textContent=ts?(offline?`Offline · Last updated ${formatUpdatedTime(ts)}`:`Updated ${formatUpdatedTime(ts)}`):""}
+function captureOfflineUI(s,snapshot){return {ts:snapshot?.ts||Date.now(),snapshot,outlook:document.getElementById("outlook").textContent,explain:document.getElementById("explain").textContent,agreementText:document.getElementById("agreement").textContent,agreementClass:document.getElementById("agreement").className,mTemp:document.getElementById("mTemp").textContent,mSkyIcon:document.getElementById("mSkyIcon").innerHTML,mSkySub:document.getElementById("mSkySub").textContent,mRain:document.getElementById("mRain").textContent,mRainSub:document.getElementById("mRainSub").textContent,mWind:document.getElementById("mWind").textContent,mWindSub:document.getElementById("mWindSub").textContent,ensembleRisk:document.getElementById("ensembleRisk").innerHTML,highlights:document.getElementById("alongHighlights").innerHTML,change:document.getElementById("forecastChange").textContent,timeline:document.getElementById("timeline").innerHTML}}
+function restoreOfflineUI(s,cached){if(!cached)return false;document.getElementById("outlook").textContent=cached.outlook||"Last saved forecast";document.getElementById("explain").textContent=cached.explain||"Showing the most recent saved forecast.";const ag=document.getElementById("agreement");ag.textContent=cached.agreementText||"Saved forecast";ag.className=cached.agreementClass||"agree medium";d
