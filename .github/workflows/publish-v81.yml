@@ -1,4 +1,4 @@
-name: Publish v81 preview
+name: Publish v83 preview
 
 on:
   push:
@@ -16,32 +16,56 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
-      - name: Build v81 preview
+      - name: Build v83 preview
         shell: bash
         run: |
           python3 - <<'PY'
           from pathlib import Path
+          import re
           s=Path('index.html').read_text(encoding='utf-8')
-          s=s.replace('<title>GTVI 26 Weather App · Mobile v80</title>','<title>GTVI 26 Weather App · Mobile v81 Preview</title>',1)
-          old='''.mobileTimeInput,.mobileControlValue{\n  width:100%;\n  min-width:0;\n  height:34px;\n  box-sizing:border-box;\n  display:flex;\n  align-items:center;\n  justify-content:center;\n  text-align:center;\n  background:#0c1c2c;\n  color:#fff;\n  -webkit-text-fill-color:#fff;\n  border:1px solid #2d4a64;\n  border-radius:8px;\n  padding:0 4px;\n  font-size:12px;'''
-          new='''.mobileTimeInput,.mobileControlValue{\n  width:100%;\n  min-width:0;\n  height:34px;\n  box-sizing:border-box;\n  display:flex;\n  align-items:center;\n  justify-content:center;\n  text-align:center;\n  background:#0c1c2c;\n  color:#fff;\n  -webkit-text-fill-color:#fff;\n  border:1px solid #2d4a64;\n  border-radius:8px;\n  padding:0 4px;\n  font-size:11px;'''
-          if old not in s: raise SystemExit('mobile time/control font block not found')
-          s=s.replace(old,new,1)
-          Path('preview-v81.html').write_text(s,encoding='utf-8')
+          s=s.replace('<title>GTVI 26 Weather App · Mobile v80</title>','<title>GTVI 26 Weather App · Mobile v83 Preview</title>',1)
+
+          m=re.search(r'<input[^>]*class="mobileTimeInput"[^>]*>',s)
+          if not m: raise SystemExit('mobileTimeInput markup not found')
+          tag=m.group(0)
+          new=tag.replace('type="time"','type="text" inputmode="numeric"',1)
+          if new==tag: raise SystemExit('native time input not found')
+          s=s.replace(tag,new,1)
+
+          css='''
+/* v83 */
+.mobileTimeInput{font-size:12px!important;padding:0 4px!important;letter-spacing:0!important;text-align:center!important;-webkit-appearance:none!important;appearance:none!important}
+.riskTitle{font-size:11px!important;color:#e6eef5!important}
+.riskSource{font-size:10px!important;color:#c8d5df!important}
+.riskRowTitle{font-size:10.5px!important;color:#cbd7e1!important}
+.riskMain{font-size:14px!important;color:#f4f8fc!important}
+.riskDetail{font-size:10px!important;color:#d3dee7!important}
+.riskChip{font-size:10px!important;color:#d8e3eb!important}
+.mobileSectionHead{font-size:12px!important;color:#e6eef5!important}
+.mobileLabel{font-size:10px!important;color:#cbd7e1!important}
+.komootNote{font-size:9.5px!important;color:#c2cfda!important}
+.mobileStat span{font-size:8.5px!important;color:#b8c7d3!important}
+.mobileStopFieldLabel{font-size:8.5px!important;color:#b8c7d3!important}
+.mobilePlanNote{font-size:9.5px!important;color:#b9c8d4!important}
+'''
+          s=s.replace('</style>',css+'\n</style>',1)
+          Path('preview-v83.html').write_text(s,encoding='utf-8')
           PY
 
-          python3 - <<'PY' > /tmp/v81-check.js
+          python3 - <<'PY' > /tmp/v83-check.js
           import re
-          s=open('preview-v81.html',encoding='utf-8').read()
+          s=open('preview-v83.html',encoding='utf-8').read()
           print('\n'.join(re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,re.S)))
           PY
-          node --check /tmp/v81-check.js
-          grep -q 'Mobile v81 Preview' preview-v81.html
-          grep -q 'font-size:11px' preview-v81.html
-          ! grep -Eq '☀️|☀|🌤️|⛅|🌞|🌥️|🌦️' preview-v81.html
+          node --check /tmp/v83-check.js
+          grep -q 'Mobile v83 Preview' preview-v83.html
+          grep -q 'inputmode="numeric"' preview-v83.html
+          grep -q 'riskTitle{font-size:11px' preview-v83.html
+          grep -q 'mobileSectionHead{font-size:12px' preview-v83.html
+          ! grep -Eq '☀️|☀|🌤️|⛅|🌞|🌥️|🌦️' preview-v83.html
 
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add preview-v81.html
-          git commit -m 'Publish v81 smaller Wheels Rolling time preview'
+          git add preview-v83.html
+          git commit -m 'Publish v83 time-field and readability preview'
           git push origin main
