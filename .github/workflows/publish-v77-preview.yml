@@ -24,32 +24,25 @@ jobs:
           import re
           s=Path('preview-v75.html').read_text()
           s=s.replace('<title>GTVI 26 Weather App · Mobile v75 Preview</title>','<title>GTVI 26 Weather App · Mobile v77 Preview</title>',1)
-          reps={
-            '--muted:#a6b9ca;':'--muted:#bac9d6;',
-            'color:#7891a6':'color:#94a9ba','color:#7f98ad':'color:#9bb0c0','color:#839aaf':'color:#9dafbf',
-            'color:#8199ae':'color:#9eb1c0','color:#8ca5ba':'color:#a8bac8','color:#8fa7bb':'color:#aabcca',
-            'color:#8fa8bc':'color:#aabcca','color:#93aac0':'color:#aec0cd','color:#9fb4c6':'color:#b9c8d3',
-            'color:#a8bdce':'color:#bdcbd6','color:#a9bfd2':'color:#bfced9','color:#a9c4dc':'color:#bfd4e5'
-          }
+          reps={'--muted:#a6b9ca;':'--muted:#bac9d6;','color:#7891a6':'color:#94a9ba','color:#7f98ad':'color:#9bb0c0','color:#839aaf':'color:#9dafbf','color:#8199ae':'color:#9eb1c0','color:#8ca5ba':'color:#a8bac8','color:#8fa7bb':'color:#aabcca','color:#8fa8bc':'color:#aabcca','color:#93aac0':'color:#aec0cd','color:#9fb4c6':'color:#b9c8d3','color:#a8bdce':'color:#bdcbd6','color:#a9bfd2':'color:#bfced9','color:#a9c4dc':'color:#bfd4e5'}
           for a,b in reps.items(): s=s.replace(a,b)
-          css='''\n/* v76: slightly brighter secondary text for improved mobile readability */\n.date,\n.metricSub,\n.timeHint,\n.breakSub,\n.breakSummary,\n.consensusHint,\n.mobileWayTitle .wayTimingInline,\n.mobileSunCompact,\n.mobilePlanNote,\n.stopMeta,\n.pointMetricLabel,\n.pointGust,\n.aboutForecastBody,\n.aboutForecastFoot{\n  filter:brightness(1.08);\n}\n'''
+          css='''\n/* v76: slightly brighter secondary text for improved mobile readability */\n.date,.metricSub,.timeHint,.breakSub,.breakSummary,.consensusHint,.mobileWayTitle .wayTimingInline,.mobileSunCompact,.mobilePlanNote,.stopMeta,.pointMetricLabel,.pointGust,.aboutForecastBody,.aboutForecastFoot{filter:brightness(1.08);}\n'''
           s=s.replace('</style>',css+'\n</style>',1)
           s=s.replace('    `<div class="alongHighlight"><b>Strongest gusts</b>${gustiest.time} · around ${Math.round(gustiest.km)} km · ${Math.round(gustiest.gust)} km/h</div>`;','    ``;',1)
-          helpers='''function bearingDeg(a,b){\n  const toRad=x=>x*Math.PI/180, toDeg=x=>x*180/Math.PI;\n  const p1=toRad(a.lat), p2=toRad(b.lat), dl=toRad(b.lon-a.lon);\n  const y=Math.sin(dl)*Math.cos(p2);\n  const x=Math.cos(p1)*Math.sin(p2)-Math.sin(p1)*Math.cos(p2)*Math.cos(dl);\n  return (toDeg(Math.atan2(y,x))+360)%360;\n}\nfunction routeBearingAtKm(s,km){\n  const line=s.line||[];\n  if(line.length<2)return null;\n  let idx=line.findIndex(p=>p.km>=km);\n  if(idx<=0)idx=1;\n  if(idx>=line.length)idx=line.length-1;\n  return bearingDeg(line[idx-1],line[idx]);\n}\nfunction circularMeanDeg(vals){\n  const v=vals.filter(Number.isFinite);\n  if(!v.length)return null;\n  const sy=v.reduce((a,d)=>a+Math.sin(d*Math.PI/180),0);\n  const sx=v.reduce((a,d)=>a+Math.cos(d*Math.PI/180),0);\n  return (Math.atan2(sy,sx)*180/Math.PI+360)%360;\n}\nfunction windEffectLabel(routeBearing,windFrom,windSpeed){\n  if(!Number.isFinite(routeBearing)||!Number.isFinite(windFrom)||!Number.isFinite(windSpeed))return null;\n  if(windSpeed<4)return {label:\"Light / little effect\",along:0,cross:windSpeed};\n  const windTo=(windFrom+180)%360;\n  const diff=((windTo-routeBearing+540)%360)-180;\n  const along=windSpeed*Math.cos(diff*Math.PI/180);\n  const cross=Math.abs(windSpeed*Math.sin(diff*Math.PI/180));\n  const frac=along/windSpeed;\n  let label=\"Crosswind\";\n  if(frac>=0.70)label=\"Tailwind\";\n  else if(frac>=0.20)label=\"Cross-tailwind\";\n  else if(frac<=-0.70)label=\"Headwind\";\n  else if(frac<=-0.20)label=\"Cross-headwind\";\n  return {label,along,cross};\n}\n\n'''
+          helpers='''function bearingDeg(a,b){const r=x=>x*Math.PI/180,d=x=>x*180/Math.PI,p1=r(a.lat),p2=r(b.lat),dl=r(b.lon-a.lon),y=Math.sin(dl)*Math.cos(p2),x=Math.cos(p1)*Math.sin(p2)-Math.sin(p1)*Math.cos(p2)*Math.cos(dl);return(d(Math.atan2(y,x))+360)%360;}\nfunction routeBearingAtKm(s,km){const line=s.line||[];if(line.length<2)return null;let i=line.findIndex(p=>p.km>=km);if(i<=0)i=1;if(i>=line.length)i=line.length-1;return bearingDeg(line[i-1],line[i]);}\nfunction circularMeanDeg(v){v=v.filter(Number.isFinite);if(!v.length)return null;const sy=v.reduce((a,d)=>a+Math.sin(d*Math.PI/180),0),sx=v.reduce((a,d)=>a+Math.cos(d*Math.PI/180),0);return(Math.atan2(sy,sx)*180/Math.PI+360)%360;}\nfunction windEffectLabel(rb,wf,ws){if(!Number.isFinite(rb)||!Number.isFinite(wf)||!Number.isFinite(ws))return null;if(ws<4)return{label:"Light / little effect"};const wt=(wf+180)%360,d=((wt-rb+540)%360)-180,f=Math.cos(d*Math.PI/180);let label="Crosswind";if(f>=.70)label="Tailwind";else if(f>=.20)label="Cross-tailwind";else if(f<=-.70)label="Headwind";else if(f<=-.20)label="Cross-headwind";return{label};}\n'''
           m=re.search(r'function renderTimelineFromBundles\([^)]*\)\{',s)
-          if not m: raise SystemExit('timeline anchor missing')
+          if not m: raise SystemExit('timeline function missing')
           s=s[:m.start()]+helpers+s[m.start():]
-          pat=r'(\s*const winds=rs\.map\(x=>x\.wind\)\.filter\(Number\.isFinite\);\s*const gusts=rs\.map\(x=>x\.gust\)\.filter\(Number\.isFinite\);\s*const wind=Math\.round\(winds\.length\?winds\.reduce\(\(a,c\)=>a\+c,0\)/winds\.length:0\);\s*const gust=Math\.round\(gusts\.length\?gusts\.reduce\(\(a,c\)=>a\+c,0\)/gusts\.length:0\);)'
-          m=re.search(pat,s)
-          if not m: raise SystemExit('wind block missing')
-          block=m.group(1)
-          extra=block.replace('    const winds','    const winds').replace('    const gusts','    const gusts')
-          replacement='''    const winds=rs.map(x=>x.wind).filter(Number.isFinite);\n    const gusts=rs.map(x=>x.gust).filter(Number.isFinite);\n    const windDirs=rs.map(x=>x.wdir).filter(Number.isFinite);\n    const wind=Math.round(winds.length?winds.reduce((a,c)=>a+c,0)/winds.length:0);\n    const gust=Math.round(gusts.length?gusts.reduce((a,c)=>a+c,0)/gusts.length:0);\n    const meanWindDir=circularMeanDeg(windDirs);\n    const routeBearing=routeBearingAtKm(s,b.p.km);\n    const windEffect=windEffectLabel(routeBearing,meanWindDir,wind);'''
-          s=s[:m.start()]+replacement+s[m.end():]
-          old2='<div class="pointGust">gust ${gust} km/h</div>'
-          new2='<div class="pointGust">gust ${gust} km/h</div>${windEffect?`<div class="pointGust">${windEffect.label}</div>`:""}'
-          if old2 not in s: raise SystemExit('gust line missing')
-          s=s.replace(old2,new2,1)
+          start=s.find('function renderTimelineFromBundles')
+          g=s.find('const gust=Math.round',start)
+          if g<0: raise SystemExit('gust declaration missing')
+          semi=s.find(';',g)
+          if semi<0: raise SystemExit('gust declaration terminator missing')
+          insert='\n    const windDirs=rs.map(x=>x.wdir).filter(Number.isFinite);\n    const meanWindDir=circularMeanDeg(windDirs);\n    const routeBearing=routeBearingAtKm(s,b.p.km);\n    const windEffect=windEffectLabel(routeBearing,meanWindDir,wind);'
+          s=s[:semi+1]+insert+s[semi+1:]
+          old='<div class="pointGust">gust ${gust} km/h</div>'
+          if old not in s: raise SystemExit('point gust line missing')
+          s=s.replace(old,old+'${windEffect?`<div class="pointGust">${windEffect.label}</div>`:""}',1)
           about='<li><b>Weather along the way</b> is matched to your expected position on the route based on the start time, riding speed and planned stops entered in the RIDE PLAN above.</li>'
           s=s.replace(about,about+'\n      <li><b>Wind effect</b> compares forecast wind direction with the actual route bearing at each point, showing tailwind, cross-tailwind, crosswind, cross-headwind or headwind.</li>',1)
           Path('preview-v77.html').write_text(s)
