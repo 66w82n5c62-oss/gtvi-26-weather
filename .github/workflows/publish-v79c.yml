@@ -1,0 +1,66 @@
+name: Publish v79 wind fix preview
+
+on:
+  push:
+    paths:
+      - '.github/workflows/publish-v79c.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Build v79 preview
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('preview-v78.html')
+          s=p.read_text(encoding='utf-8')
+          s=s.replace('<title>GTVI 26 Weather App · Mobile v78 Preview</title>','<title>GTVI 26 Weather App · Mobile v79 Preview</title>',1)
+
+          # fetchSource already requests wind_direction_10m; retain it in row data.
+          old='wind:num(h.wind_speed_10m?.[i])??0,gust:num(h.wind_gusts_10m?.[i])??0}'
+          new='wind:num(h.wind_speed_10m?.[i])??0,gust:num(h.wind_gusts_10m?.[i])??0,wdir:num(h.wind_direction_10m?.[i])}'
+          if s.count(old)<2: raise SystemExit(f'row patterns found {s.count(old)} times')
+          s=s.replace(old,new,2)
+
+          # Loading-state order: Sunshine, Temperature, Rain, Wind.
+          old_block='''<div class="riskRow"><div class="riskRowTitle">Wind</div><div class="riskMain">Loading…</div></div>\n <div class="riskRow"><div class="riskRowTitle">Temperature</div><div class="riskMain">Loading…</div></div>\n <div class="riskRow"><div class="riskRowTitle">Rain</div><div class="riskMain">Loading…</div></div>\n <div class="riskRow"><div class="riskRowTitle">Sunshine</div><div class="riskMain">Loading…</div></div>'''
+          new_block='''<div class="riskRow"><div class="riskRowTitle">Sunshine</div><div class="riskMain">Loading…</div></div>\n <div class="riskRow"><div class="riskRowTitle">Temperature</div><div class="riskMain">Loading…</div></div>\n <div class="riskRow"><div class="riskRowTitle">Rain</div><div class="riskMain">Loading…</div></div>\n <div class="riskRow"><div class="riskRowTitle">Wind</div><div class="riskMain">Loading…</div></div>'''
+          if old_block not in s: raise SystemExit('loading spread block not found')
+          s=s.replace(old_block,new_block,1)
+
+          # Rendered order: reorder completed cards by their labels after rendering.
+          marker=' document.getElementById("mWind").textContent=w+" km/h";'
+          reorder=''' const spreadOrder={Sunshine:0,Temperature:1,Rain:2,Wind:3};\n Array.from(box.children).sort((a,b)=>(spreadOrder[a.querySelector(".riskRowTitle")?.textContent]??99)-(spreadOrder[b.querySelector(".riskRowTitle")?.textContent]??99)).forEach(el=>box.appendChild(el));\n\n document.getElementById("mWind").textContent=w+" km/h";'''
+          if marker not in s: raise SystemExit('spread insertion point not found')
+          s=s.replace(marker,reorder,1)
+
+          Path('preview-v79.html').write_text(s,encoding='utf-8')
+          PY
+
+          python3 - <<'PY' > /tmp/v79-check.js
+          import re
+          s=open('preview-v79.html',encoding='utf-8').read()
+          print('\n'.join(re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,re.S)))
+          PY
+          node --check /tmp/v79-check.js
+          grep -q 'Mobile v79 Preview' preview-v79.html
+          grep -q 'wind_direction_10m' preview-v79.html
+          grep -q 'wdir:num(h.wind_direction_10m' preview-v79.html
+          grep -q 'windEffect.label' preview-v79.html
+          grep -q 'spreadOrder={Sunshine:0,Temperature:1,Rain:2,Wind:3}' preview-v79.html
+          ! grep -Eq '☀️|☀|🌤️|⛅|🌞|🌥️|🌦️' preview-v79.html
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add preview-v79.html
+          git commit -m 'Publish v79 wind fix preview'
+          git push origin main
