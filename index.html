@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#081522">
-<title>GTVI 26 Weather App · Mobile v78</title>
+<title>GTVI 26 Weather App · Mobile v80</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
 :root {
@@ -1078,6 +1078,13 @@ details[open] > summary::before{
 /* v76: slightly brighter secondary text for improved mobile readability */
 .date,.metricSub,.timeHint,.breakSub,.breakSummary,.consensusHint,.mobileWayTitle .wayTimingInline,.mobileSunCompact,.mobilePlanNote,.stopMeta,.pointMetricLabel,.pointGust,.aboutForecastBody,.aboutForecastFoot{filter:brightness(1.08);}
 
+
+.pointWindEffect{
+  font-size:10px;
+  color:#f4f8fc;
+  font-weight:800;
+}
+
 </style>
 </head>
 <body>
@@ -1638,7 +1645,7 @@ function row(result,idx,p,s){
  if(!result?.ok)return null;
  const x=result.data[idx]||result.data[0], h=x?.hourly; if(!h)return null;
  const i=nearestISO(h.time,arrivalInfo(p.ride_h,s,p.km).iso); if(i<0)return null;
- return {source:result.src,temp:num(h.temperature_2m?.[i]),feel:num(h.apparent_temperature?.[i]),rain:num(h.precipitation_probability?.[i]),precip:num(h.precipitation?.[i])??0,code:num(h.weather_code?.[i])??3,wind:num(h.wind_speed_10m?.[i])??0,gust:num(h.wind_gusts_10m?.[i])??0};
+ return {source:result.src,temp:num(h.temperature_2m?.[i]),feel:num(h.apparent_temperature?.[i]),rain:num(h.precipitation_probability?.[i]),precip:num(h.precipitation?.[i])??0,code:num(h.weather_code?.[i])??3,wind:num(h.wind_speed_10m?.[i])??0,gust:num(h.wind_gusts_10m?.[i])??0,wdir:num(h.wind_direction_10m?.[i])};
 }
 
 // Stable reference timetable for the headline consensus badge.
@@ -1663,7 +1670,7 @@ function consensusRow(result,idx,p,s){
  if(!result?.ok)return null;
  const x=result.data[idx]||result.data[0], h=x?.hourly; if(!h)return null;
  const i=nearestISO(h.time,consensusArrivalISO(p,s)); if(i<0)return null;
- return {source:result.src,temp:num(h.temperature_2m?.[i]),feel:num(h.apparent_temperature?.[i]),rain:num(h.precipitation_probability?.[i]),precip:num(h.precipitation?.[i])??0,code:num(h.weather_code?.[i])??3,wind:num(h.wind_speed_10m?.[i])??0,gust:num(h.wind_gusts_10m?.[i])??0};
+ return {source:result.src,temp:num(h.temperature_2m?.[i]),feel:num(h.apparent_temperature?.[i]),rain:num(h.precipitation_probability?.[i]),precip:num(h.precipitation?.[i])??0,code:num(h.weather_code?.[i])??3,wind:num(h.wind_speed_10m?.[i])??0,gust:num(h.wind_gusts_10m?.[i])??0,wdir:num(h.wind_direction_10m?.[i])};
 }
 function percentile(vals,q){
  const v=vals.filter(Number.isFinite).sort((a,b)=>a-b);
@@ -1823,6 +1830,9 @@ function renderEnsembleRisk(risk,deterministicMax=null){
      <div class="riskDetail">${Number.isFinite(risk.sunP10)&&Number.isFinite(risk.sunP90)?`Likely range ${risk.sunP10.toFixed(1)}–${risk.sunP90.toFixed(1)} h during the planned ride`:"Ensemble sunshine duration unavailable"}</div>
    </div>`;
 
+ const spreadOrder={Sunshine:0,Temperature:1,Rain:2,Wind:3};
+ Array.from(box.children).sort((a,b)=>(spreadOrder[a.querySelector(".riskRowTitle")?.textContent]??99)-(spreadOrder[b.querySelector(".riskRowTitle")?.textContent]??99)).forEach(el=>box.appendChild(el));
+
  document.getElementById("mWind").textContent=w+" km/h";
  document.getElementById("mWindSub").textContent=`gusts ~${g} km/h${risk.p60>0?` · 60+ risk ${risk.p60}%`:""}`;
  document.getElementById("mTemp").textContent=`${tLo}–${tHi}°`;
@@ -1894,10 +1904,10 @@ function baseUI(s){
  document.getElementById("mSkyIcon").innerHTML=cycleSunIcon(true);document.getElementById("mSkySub").textContent="Sun / cloud loading…";
  document.getElementById("mRainSub").textContent="";document.getElementById("mWindSub").textContent="";
  document.getElementById("ensembleRisk").innerHTML=`
- <div class="riskRow"><div class="riskRowTitle">Wind</div><div class="riskMain">Loading…</div></div>
+ <div class="riskRow"><div class="riskRowTitle">Sunshine</div><div class="riskMain">Loading…</div></div>
  <div class="riskRow"><div class="riskRowTitle">Temperature</div><div class="riskMain">Loading…</div></div>
  <div class="riskRow"><div class="riskRowTitle">Rain</div><div class="riskMain">Loading…</div></div>
- <div class="riskRow"><div class="riskRowTitle">Sunshine</div><div class="riskMain">Loading…</div></div>`;
+ <div class="riskRow"><div class="riskRowTitle">Wind</div><div class="riskMain">Loading…</div></div>`;
  document.getElementById("timeline").innerHTML='<div class="stop">Fetching live route forecast…</div>';
  updateBreakUI(s);
  resetSunTimes(s);
@@ -1942,7 +1952,7 @@ function renderTimelineFromBundles(bundles,s){
            if(Number.isFinite(ep))rainProb=ep+"% ENS";
          }
          return `<div class="modelRow"><b>${md.label}</b><span>${Math.round(r.temp)}°</span><span>Rain ${r.precip.toFixed(1)} mm/h · ${rainProb}</span><span>${Math.round(r.wind)} / ${Math.round(r.gust)} km/h</span></div>`;
-       }if(isResultPending(s,md.id))return `<div class="modelRow"><b>${md.label}</b><span>…</span><span>loading…</span><span>…</span></div>`;return `<div class="modelRow"><b>${md.label}</b><span>—</span><span>not in range</span><span>—</span></div>`}).join("");return `<div class="stop${activeClass}"><div class="stopMain"><div><div class="stopPlace"><span class="stopName">${b.p.label==="Start"?s.start:b.p.label==="Finish"?s.finish:b.p.label}</span>${badge}</div><div class="stopMeta">${b.p.km} km · ${b.p.ele} m · ~${rideClock(b.p.ride_h,s,b.p.km)}</div></div><div class="pointWeather"><div class="pointCondition"><div class="wxIcon" aria-hidden="true">${WICON(code)}</div><div class="conditionText">${cond}</div></div><div class="pointMetrics"><div class="pointMetricRow"><span class="pointMetricLabel">Temp</span><span class="pointMetricValue">${meanT}°</span></div><div class="pointMetricRow"><span class="pointMetricLabel">Rain</span><span class="pointMetricValue ${cclass}">${prob==null?"—":Math.round(prob)+"%"}</span></div><div class="pointMetricRow"><span class="pointMetricLabel">Wind</span><span class="pointMetricValue">${wind} km/h</span></div><div class="pointGust">gust ${gust} km/h</div>${windEffect?`<div class="pointGust">${windEffect.label}</div>`:""}</div></div></div><details><summary>${b.conf.label.replace(" forecast consensus"," consensus")} · show detail</summary><div class="modelGrid">${detail}</div></details></div>`}).join("");renderWorstHighlights(bundles,s);
+       }if(isResultPending(s,md.id))return `<div class="modelRow"><b>${md.label}</b><span>…</span><span>loading…</span><span>…</span></div>`;return `<div class="modelRow"><b>${md.label}</b><span>—</span><span>not in range</span><span>—</span></div>`}).join("");return `<div class="stop${activeClass}"><div class="stopMain"><div><div class="stopPlace"><span class="stopName">${b.p.label==="Start"?s.start:b.p.label==="Finish"?s.finish:b.p.label}</span>${badge}</div><div class="stopMeta">${b.p.km} km · ${b.p.ele} m · ~${rideClock(b.p.ride_h,s,b.p.km)}</div></div><div class="pointWeather"><div class="pointCondition"><div class="wxIcon" aria-hidden="true">${WICON(code)}</div><div class="conditionText">${cond}</div></div><div class="pointMetrics"><div class="pointMetricRow"><span class="pointMetricLabel">Temp</span><span class="pointMetricValue">${meanT}°</span></div><div class="pointMetricRow"><span class="pointMetricLabel">Rain</span><span class="pointMetricValue ${cclass}">${prob==null?"—":Math.round(prob)+"%"}</span></div><div class="pointMetricRow"><span class="pointMetricLabel">Wind</span><span class="pointMetricValue">${wind} km/h</span></div><div class="pointGust">gust ${gust} km/h</div>${windEffect?`<div class="pointGust pointWindEffect">${windEffect.label}</div>`:""}</div></div></div><details><summary>${b.conf.label.replace(" forecast consensus"," consensus")} · show detail</summary><div class="modelGrid">${detail}</div></details></div>`}).join("");renderWorstHighlights(bundles,s);
 }
 function renderDeterministicResults(results,s,token,ensembleState){
  if(token!==renderToken || s!==stage())return {sm:null,error:null};
