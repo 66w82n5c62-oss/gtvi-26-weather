@@ -1,0 +1,47 @@
+name: Promote v89 live
+
+on:
+  push:
+    paths:
+      - '.github/workflows/promote-v89-live.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Build live index from approved v89 preview
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          src=Path('preview-v89.html').read_text(encoding='utf-8')
+          old='<title>GTVI 26 Weather App · Mobile v89 Preview</title>'
+          new='<title>GTVI 26 Weather App · Mobile v89</title>'
+          if old not in src:
+              raise SystemExit('v89 preview title not found')
+          Path('index.html').write_text(src.replace(old,new,1),encoding='utf-8')
+          PY
+          python3 - <<'PY' > /tmp/v89-live-check.js
+          import re
+          s=open('index.html',encoding='utf-8').read()
+          print('\n'.join(re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,re.S)))
+          PY
+          node --check /tmp/v89-live-check.js
+          grep -q 'Mobile v89</title>' index.html
+          grep -q 'rainIntensityWxIcon' index.html
+          grep -q '"2026-09-16":"D5A"' index.html
+          ! grep -Eq '☀️|☀|🌤️|⛅|🌞|🌥️|🌦️' index.html
+      - name: Publish live
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git diff --cached --quiet || git commit -m 'Promote mobile v89 live'
+          git push origin main
