@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#081522">
-<title>GTVI 26 Weather App · Mobile v80</title>
+<title>GTVI 26 Weather App · Mobile v86</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
 :root {
@@ -1085,6 +1085,37 @@ details[open] > summary::before{
   font-weight:800;
 }
 
+
+/* v84: iOS Wheels Rolling fit, brighter controls and scrollable ride highlights */
+.mobileTimeInput{font-size:12px!important;padding:0 4px!important;letter-spacing:0!important;text-align:center!important;-webkit-appearance:none!important;appearance:none!important}
+
+/* Forecast spread: slightly larger and whiter */
+.mobileRiskDisclosure>summary{font-size:12px!important;color:#edf4fa!important}
+.forecastSources{font-size:10px!important;color:#cbd7e1!important}
+.forecastSources span{color:#edf4fa!important}
+.riskTitle{font-size:11px!important;color:#e6eef5!important}
+.riskSource{font-size:10px!important;color:#c8d5df!important}
+.riskRowTitle{font-size:10.5px!important;color:#d6e0e8!important}
+.riskMain{font-size:14px!important;color:#f4f8fc!important}
+.riskDetail{font-size:10px!important;color:#d3dee7!important}
+.riskChip{font-size:10px!important;color:#d8e3eb!important}
+
+/* Ride Plan: slightly larger and whiter */
+.mobileRidePlan>summary{font-size:12px!important;color:#edf4fa!important}
+.mobileSectionHead{font-size:12px!important;color:#edf4fa!important}
+.mobileLabel{font-size:10px!important;color:#d2dde6!important}
+.komootNote{font-size:9.5px!important;color:#c7d3dd!important}
+.mobileStat span{font-size:8.5px!important;color:#bdcad5!important}
+.mobileStopFieldLabel{font-size:8.5px!important;color:#bdcad5!important}
+.mobilePlanNote{font-size:9.5px!important;color:#c2ced8!important}
+
+/* Swipeable ride highlights */
+.alongHighlights{display:flex!important;gap:6px!important;overflow-x:auto!important;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin:0 0 7px;padding-bottom:1px}
+.alongHighlights::-webkit-scrollbar{display:none}
+.alongHighlight{flex:0 0 72%;scroll-snap-align:start;font-size:10px!important;color:#edf5fb!important}
+.alongHighlight b{font-size:10px!important;color:#9ed7fa!important}
+@media(max-width:360px){.alongHighlight{flex-basis:84%}}
+
 </style>
 </head>
 <body>
@@ -1151,7 +1182,7 @@ details[open] > summary::before{
     <summary>Forecast spread</summary>
     <div class="forecastSources">
       <div><span>Forecasts compared</span> ECMWF IFS · DWD ICON · NOAA GFS</div>
-      <div><span>Range</span> ECMWF ensemble</div>
+      <div><span>Range</span> Ensemble (ECMWF preferred · GEFS fallback)</div>
     </div>
     <div id="ensembleRisk" class="riskRows ensembleRiskRows">
       <div class="riskRow"><div class="riskRowTitle">Wind</div><div class="riskMain">Loading…</div></div>
@@ -1169,7 +1200,7 @@ details[open] > summary::before{
         <div class="mobileLabel">WHEELS ROLLING</div>
         <div class="mobileStepper">
           <button id="timeBack" class="mobileStep" type="button" aria-label="Start 15 minutes earlier">‹</button>
-          <input id="startTime" class="mobileTimeInput" type="text" value="08:30" inputmode="numeric" maxlength="5" pattern="[0-2][0-9]:[0-5][0-9]" aria-label="Exact start time in 24-hour HH:MM format">
+          <input id="startTime" class="mobileTimeInput" type="text" inputmode="numeric" value="08:30" aria-label="Wheels rolling time">
           <button id="timeForward" class="mobileStep" type="button" aria-label="Start 15 minutes later">›</button>
         </div>
       </div>
@@ -1292,8 +1323,9 @@ details[open] > summary::before{
     <p>This app is designed for the Vienna–Pula ride and combines several weather forecasts with the planned route and timing.</p>
     <ul>
       <li><b>Forecast consensus</b> shows how closely the main forecasts agree. It is a guide to confidence, not an official probability.</li>
-      <li><b>Forecast spread</b> shows the broader spread of likely conditions, using ensemble forecasting to highlight uncertainty, including expected sunshine during the planned ride.</li>
+      <li><b>Forecast spread</b> is separate from the central forecast and shows the broader ensemble range of possible conditions, including expected sunshine during the planned ride.</li>
       <li><b>Weather along the way</b> is matched to your expected position on the route based on the start time, riding speed and planned stops entered in the RIDE PLAN above.</li>
+      <li><b>Along-the-way headline values</b> use the mean of ECMWF, DWD ICON and GFS at that route point for temperature, wind, gust, rainfall amount and cloud cover; wind direction uses a circular mean. Rain probability combines the available model probabilities and adds ECMWF ENS probability when available. Individual model values remain under show detail.</li>
       <li><b>Wind effect</b> compares forecast wind direction with the actual route bearing at each point, showing tailwind, cross-tailwind, crosswind, cross-headwind or headwind.</li>
       <li>Changing the <b>Ride plan</b> changes the point-by-point weather timing, but does not change the overall daily forecast consensus.</li>
       <li>Forecasts become more reliable as the ride day approaches, so refresh the app regularly and check again before setting off.</li>
@@ -1535,7 +1567,7 @@ function resetSunTimes(s){
 
 async function fetchSource(src,s){
  const lat=s.samples.map(p=>p.lat).join(","),lon=s.samples.map(p=>p.lon).join(","),elevation=s.samples.map(p=>p.ele).join(",");
- let hourly="temperature_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m";
+ let hourly="temperature_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m,cloud_cover";
  if(src.id!=="ecmwf")hourly+=",precipitation_probability";
  // Ask only for the actual ride date plus the following day.
  // This avoids downloading each model's entire horizon and makes later-stage
@@ -1645,7 +1677,7 @@ function row(result,idx,p,s){
  if(!result?.ok)return null;
  const x=result.data[idx]||result.data[0], h=x?.hourly; if(!h)return null;
  const i=nearestISO(h.time,arrivalInfo(p.ride_h,s,p.km).iso); if(i<0)return null;
- return {source:result.src,temp:num(h.temperature_2m?.[i]),feel:num(h.apparent_temperature?.[i]),rain:num(h.precipitation_probability?.[i]),precip:num(h.precipitation?.[i])??0,code:num(h.weather_code?.[i])??3,wind:num(h.wind_speed_10m?.[i])??0,gust:num(h.wind_gusts_10m?.[i])??0,wdir:num(h.wind_direction_10m?.[i])};
+ return {source:result.src,temp:num(h.temperature_2m?.[i]),feel:num(h.apparent_temperature?.[i]),rain:num(h.precipitation_probability?.[i]),precip:num(h.precipitation?.[i])??0,code:num(h.weather_code?.[i])??3,wind:num(h.wind_speed_10m?.[i])??0,gust:num(h.wind_gusts_10m?.[i])??0,wdir:num(h.wind_direction_10m?.[i]),cloud:num(h.cloud_cover?.[i])};
 }
 
 // Stable reference timetable for the headline consensus badge.
@@ -1670,7 +1702,7 @@ function consensusRow(result,idx,p,s){
  if(!result?.ok)return null;
  const x=result.data[idx]||result.data[0], h=x?.hourly; if(!h)return null;
  const i=nearestISO(h.time,consensusArrivalISO(p,s)); if(i<0)return null;
- return {source:result.src,temp:num(h.temperature_2m?.[i]),feel:num(h.apparent_temperature?.[i]),rain:num(h.precipitation_probability?.[i]),precip:num(h.precipitation?.[i])??0,code:num(h.weather_code?.[i])??3,wind:num(h.wind_speed_10m?.[i])??0,gust:num(h.wind_gusts_10m?.[i])??0,wdir:num(h.wind_direction_10m?.[i])};
+ return {source:result.src,temp:num(h.temperature_2m?.[i]),feel:num(h.apparent_temperature?.[i]),rain:num(h.precipitation_probability?.[i]),precip:num(h.precipitation?.[i])??0,code:num(h.weather_code?.[i])??3,wind:num(h.wind_speed_10m?.[i])??0,gust:num(h.wind_gusts_10m?.[i])??0,wdir:num(h.wind_direction_10m?.[i]),cloud:num(h.cloud_cover?.[i])};
 }
 function percentile(vals,q){
  const v=vals.filter(Number.isFinite).sort((a,b)=>a-b);
@@ -1782,7 +1814,6 @@ function setRainAmountIcon(risk=null,deterministicPhrase=""){
 }
 function renderEnsembleRisk(risk,deterministicMax=null){
  const box=document.getElementById("ensembleRisk");
- setRainAmountIcon(risk,document.getElementById("outlook")?.textContent||"");
 
  if(!risk){
    box.innerHTML=`<div class="riskRow riskRowFull">
@@ -1833,11 +1864,6 @@ function renderEnsembleRisk(risk,deterministicMax=null){
  const spreadOrder={Sunshine:0,Temperature:1,Rain:2,Wind:3};
  Array.from(box.children).sort((a,b)=>(spreadOrder[a.querySelector(".riskRowTitle")?.textContent]??99)-(spreadOrder[b.querySelector(".riskRowTitle")?.textContent]??99)).forEach(el=>box.appendChild(el));
 
- document.getElementById("mWind").textContent=w+" km/h";
- document.getElementById("mWindSub").textContent=`gusts ~${g} km/h${risk.p60>0?` · 60+ risk ${risk.p60}%`:""}`;
- document.getElementById("mTemp").textContent=`${tLo}–${tHi}°`;
- document.getElementById("mRain").textContent=risk.rainAny+"%";
- document.getElementById("mRainSub").textContent=risk.rainHeavy?`heavier rain ${risk.rainHeavy}%`:"mostly light/no rain signal";
 }
 function wet(r){return !!r&&((r.precip??0)>=0.2||(r.code??0)>=51)}
 function spread(v){v=v.filter(Number.isFinite);return v.length?Math.max(...v)-Math.min(...v):99}
@@ -1849,33 +1875,32 @@ function confidence(rows,d){
  const da=daysAway(d); if(da>7)score-=2;else if(da>5)score-=1;
  return score>=4?{level:"high",label:"Current forecast consensus: High"}:score>=2?{level:"medium",label:"Current forecast consensus: Medium"}:{level:"low",label:"Current forecast consensus: Low"};
 }
-function skySummary(bundles){
- const codes=bundles.flatMap(b=>b.forecasts.filter(Boolean).map(r=>r.code).filter(Number.isFinite));
- if(!codes.length)return {icon:cycleSunIcon(true),label:"Sun / cloud uncertain"};
- // Convert WMO weather codes into a simple sky-cover score.
- // 0 clear, 1 mainly clear, 2 partly cloudy, all cloud/fog/precip states treated as overcast.
- const scores=codes.map(c=>c===0?0:c===1?1:c===2?2:3);
- const avg=scores.reduce((a,c)=>a+c,0)/scores.length;
- if(avg<0.65)return {icon:cycleSunIcon(false),label:"Mostly sunny"};
- if(avg<1.45)return {icon:cycleSunIcon(true),label:"Sunny intervals"};
- if(avg<2.35)return {icon:cycleSunIcon(true),label:"Sun and cloud"};
- return {icon:"☁️",label:"Mostly cloudy"};
+function skySummary(bundles,s=stage()){
+ const clouds=bundles.map((b,idx)=>bundleSummaryPoint(b,s,idx)?.cloud).filter(Number.isFinite);
+ if(clouds.length){
+   const avg=meanFinite(clouds);
+   if(avg<20)return {icon:cycleSunIcon(false),label:"Mostly sunny"};
+   if(avg<45)return {icon:cycleSunIcon(true),label:"Sunny intervals"};
+   if(avg<70)return {icon:cycleSunIcon(true),label:"Sun and cloud"};
+   return {icon:"☁️",label:"Mostly cloudy"};
+ }
+ return {icon:cycleSunIcon(true),label:"Sun / cloud uncertain"};
 }
-function summarize(bundles){
- const all=bundles.flatMap(b=>b.forecasts.filter(Boolean));
- if(!all.length)return null;
- const temps=all.map(r=>r.temp).filter(Number.isFinite), gusts=all.map(r=>r.gust).filter(Number.isFinite);
- const rainProbs=bundles.map(b=>b.best?.rain).filter(Number.isFinite);
- const wetFrac=all.filter(wet).length/all.length;
- const thunder=all.some(r=>r.code>=95), heavy=all.some(r=>(r.precip??0)>=2.5);
+function summarize(bundles,s=stage()){
+ const pts=bundles.map((b,idx)=>bundleSummaryPoint(b,s,idx)).filter(Boolean);
+ if(!pts.length)return null;
+ const temps=pts.map(p=>p.temp).filter(Number.isFinite),gusts=pts.map(p=>p.gust).filter(Number.isFinite),winds=pts.map(p=>p.wind).filter(Number.isFinite),rainProbs=pts.map(p=>p.rainProb).filter(Number.isFinite);
+ const pointVotes=bundles.map(b=>{const rs=b.forecasts.filter(Boolean),need=Math.max(1,Math.ceil(rs.length/2));return {wet:rs.filter(wet).length>=need,thunder:rs.filter(r=>r.code>=95).length>=need}});
+ const wetFrac=pointVotes.length?pointVotes.filter(x=>x.wet).length/pointVotes.length:0;
+ const thunder=pointVotes.some(x=>x.thunder),heavy=pts.some(p=>(p.precip??0)>=2.5);
  const confs=bundles.map(b=>b.conf.level);
  const overall=confs.includes("low")?"low":confs.includes("medium")?"medium":"high";
  let phrase=thunder?"Thunderstorm risk":heavy?"Periods of rain likely":wetFrac>.55?"Showery / wet":wetFrac>.2?"Some shower risk":"Mostly dry";
- const tmin=Math.round(Math.min(...temps)),tmax=Math.round(Math.max(...temps));
- const gmax=Math.round(Math.max(...gusts));
+ const tmin=temps.length?Math.round(Math.min(...temps)):null,tmax=temps.length?Math.round(Math.max(...temps)):null;
+ const gmax=gusts.length?Math.round(Math.max(...gusts)):null,wmax=winds.length?Math.round(Math.max(...winds)):null;
  const rp=rainProbs.length?Math.round(Math.max(...rainProbs)):null;
- const sky=skySummary(bundles);
- return {phrase,tmin,tmax,gmax,rp,overall,sky};
+ const sky=skySummary(bundles,s);
+ return {phrase,tmin,tmax,gmax,wmax,rp,overall,sky};
 }
 function buildDays(){
  const el=document.getElementById("days");el.innerHTML="";
@@ -1922,7 +1947,7 @@ function buildBundlesFromResults(results,s,useConsensus=false){
  });
 }
 
-const FORECAST_STORE_PREFIX="gtvi26_forecast_v72_";
+const FORECAST_STORE_PREFIX="gtvi26_forecast_v86_";
 let lastChangeTextByStage={};
 function forecastStoreKey(s){return FORECAST_STORE_PREFIX+s.key}
 function safeStoreGet(s){try{const raw=localStorage.getItem(forecastStoreKey(s));return raw?JSON.parse(raw):null}catch(e){return null}}
@@ -1930,9 +1955,37 @@ function safeStoreSet(s,data){try{localStorage.setItem(forecastStoreKey(s),JSON.
 function localViennaNowParts(){try{const parts=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Vienna",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).formatToParts(new Date());const o={};parts.forEach(p=>{if(p.type!=="literal")o[p.type]=p.value});return {date:`${o.year}-${o.month}-${o.day}`,minutes:Number(o.hour)*60+Number(o.minute)}}catch(e){const d=new Date();return {date:d.toISOString().slice(0,10),minutes:d.getHours()*60+d.getMinutes()}}}
 function pointArrivalMinutes(p,s){const a=arrivalInfo(p.ride_h,s,p.km);return {date:a.date,minutes:parseClock(a.time),time:a.time}}
 function currentRoutePointIndex(bundles,s){const now=localViennaNowParts();if(now.date!==s.date)return -1;for(let i=0;i<bundles.length;i++){const a=pointArrivalMinutes(bundles[i].p,s);if(a.date===now.date&&a.minutes>=now.minutes)return i}return -1}
-function bundleSummaryPoint(b,s){const rs=b.forecasts.filter(Boolean),disp=rs[0]||b.best;if(!disp)return null;const rains=rs.map(x=>x.rain).filter(Number.isFinite),precip=rs.map(x=>x.precip).filter(Number.isFinite),gusts=rs.map(x=>x.gust).filter(Number.isFinite),temps=rs.map(x=>x.temp).filter(Number.isFinite);const rainProb=Number.isFinite(b.best?.rain)?b.best.rain:(rains.length?Math.max(...rains):null);const meanPrecip=precip.length?precip.reduce((a,c)=>a+c,0)/precip.length:(Number.isFinite(disp.precip)?disp.precip:0);const gust=gusts.length?gusts.reduce((a,c)=>a+c,0)/gusts.length:(Number.isFinite(disp.gust)?disp.gust:0);const temp=temps.length?temps.reduce((a,c)=>a+c,0)/temps.length:(Number.isFinite(disp.temp)?disp.temp:null);const a=pointArrivalMinutes(b.p,s);return {km:b.p.km,time:a.time,rainProb,precip:meanPrecip,gust,temp}}
-function forecastSnapshot(bundles,s){const pts=bundles.map(b=>bundleSummaryPoint(b,s)).filter(Boolean);if(!pts.length)return null;const rainMax=Math.max(...pts.map(p=>Number.isFinite(p.rainProb)?p.rainProb:0)),precipMax=Math.max(...pts.map(p=>Number.isFinite(p.precip)?p.precip:0)),gustMax=Math.max(...pts.map(p=>Number.isFinite(p.gust)?p.gust:0)),temps=pts.map(p=>p.temp).filter(Number.isFinite);return {ts:Date.now(),rainMax:Math.round(rainMax),precipMax:Number(precipMax.toFixed(2)),gustMax:Math.round(gustMax),tempMin:temps.length?Math.round(Math.min(...temps)):null,tempMax:temps.length?Math.round(Math.max(...temps)):null}}
-function renderWorstHighlights(bundles,s){const el=document.getElementById("alongHighlights");if(!el)return;const pts=bundles.map(b=>bundleSummaryPoint(b,s)).filter(Boolean);if(!pts.length){el.innerHTML="";return}const wettest=pts.reduce((a,p)=>{const score=(Number.isFinite(p.rainProb)?p.rainProb:0)+(Number.isFinite(p.precip)?p.precip*20:0);return !a||score>a.score?{...p,score}:a},null);const gustiest=pts.reduce((a,p)=>!a||p.gust>a.gust?p:a,null);const wetDetail=(Number.isFinite(wettest.rainProb)&&wettest.rainProb>0)?`${Math.round(wettest.rainProb)}% rain`:(wettest.precip>=0.1?`${wettest.precip.toFixed(1)} mm/h`:"little rain signal");el.innerHTML=`<div class="alongHighlight"><b>Wettest</b>${wettest.time} · around ${Math.round(wettest.km)} km · ${wetDetail}</div>`}
+function meanFinite(v){v=v.filter(Number.isFinite);return v.length?v.reduce((a,c)=>a+c,0)/v.length:null}
+function consensusRainProbability(b,s,idx){
+ const probs=b.forecasts.filter(Boolean).map(x=>x.rain).filter(Number.isFinite);
+ const ep=pointEnsembleRainProbability(ensembleCache[s.key],s,b.p,idx);
+ if(Number.isFinite(ep))probs.push(ep);
+ if(probs.length)return meanFinite(probs);
+ return Number.isFinite(b.best?.rain)?b.best.rain:null;
+}
+function bundleSummaryPoint(b,s,idx=0){const rs=b.forecasts.filter(Boolean),disp=rs[0]||b.best;if(!disp)return null;const precip=rs.map(x=>x.precip).filter(Number.isFinite),gusts=rs.map(x=>x.gust).filter(Number.isFinite),winds=rs.map(x=>x.wind).filter(Number.isFinite),temps=rs.map(x=>x.temp).filter(Number.isFinite),windDirs=rs.map(x=>x.wdir).filter(Number.isFinite);const rainProb=consensusRainProbability(b,s,idx);const meanPrecip=meanFinite(precip)??(Number.isFinite(disp.precip)?disp.precip:0);const gust=meanFinite(gusts)??(Number.isFinite(disp.gust)?disp.gust:0);const wind=meanFinite(winds)??(Number.isFinite(disp.wind)?disp.wind:0);const temp=meanFinite(temps)??(Number.isFinite(disp.temp)?disp.temp:null);const cloud=meanFinite(rs.map(x=>x.cloud))??(Number.isFinite(disp.cloud)?disp.cloud:null);const wdir=circularMeanDeg(windDirs);const a=pointArrivalMinutes(b.p,s);return {km:b.p.km,time:a.time,rainProb,precip:meanPrecip,gust,wind,temp,cloud,wdir}}
+function forecastSnapshot(bundles,s){const pts=bundles.map((b,idx)=>bundleSummaryPoint(b,s,idx)).filter(Boolean);if(!pts.length)return null;const rainMax=Math.max(...pts.map(p=>Number.isFinite(p.rainProb)?p.rainProb:0)),precipMax=Math.max(...pts.map(p=>Number.isFinite(p.precip)?p.precip:0)),gustMax=Math.max(...pts.map(p=>Number.isFinite(p.gust)?p.gust:0)),temps=pts.map(p=>p.temp).filter(Number.isFinite);return {ts:Date.now(),rainMax:Math.round(rainMax),precipMax:Number(precipMax.toFixed(2)),gustMax:Math.round(gustMax),tempMin:temps.length?Math.round(Math.min(...temps)):null,tempMax:temps.length?Math.round(Math.max(...temps)):null}}
+function renderWorstHighlights(bundles,s){
+ const el=document.getElementById("alongHighlights");if(!el)return;
+ const pts=bundles.map((b,idx)=>bundleSummaryPoint(b,s,idx)).filter(Boolean);
+ if(!pts.length){el.innerHTML="";return}
+ const validTemp=pts.filter(p=>Number.isFinite(p.temp));
+ const validCloud=pts.filter(p=>Number.isFinite(p.cloud));
+ const coldest=validTemp.length?validTemp.reduce((a,p)=>p.temp<a.temp?p:a):null;
+ const warmest=validTemp.length?validTemp.reduce((a,p)=>p.temp>a.temp?p:a):null;
+ const sunniest=validCloud.length?validCloud.reduce((a,p)=>p.cloud<a.cloud?p:a):null;
+ const wettest=pts.reduce((a,p)=>{const score=(Number.isFinite(p.rainProb)?p.rainProb:0)+(Number.isFinite(p.precip)?p.precip*20:0);return !a||score>a.score?{...p,score}:a},null);
+ const windiest=pts.reduce((a,p)=>!a||p.gust>a.gust?p:a,null);
+ const card=(label,p,detail)=>p?`<div class="alongHighlight"><b>${label}</b>${p.time} · around ${Math.round(p.km)} km · ${detail}</div>`:"";
+ const wetDetail=(Number.isFinite(wettest.rainProb)&&wettest.rainProb>0)?`${Math.round(wettest.rainProb)}% rain`:(wettest.precip>=0.1?`${wettest.precip.toFixed(1)} mm/h`:"little rain signal");
+ el.innerHTML=[
+   card("Coldest",coldest,`${Math.round(coldest?.temp)}°C`),
+   card("Warmest",warmest,`${Math.round(warmest?.temp)}°C`),
+   card("Sunniest",sunniest,`${Math.round(100-sunniest?.cloud)}% clear-sky signal`),
+   card("Wettest",wettest,wetDetail),
+   card("Windiest",windiest,`${Math.round(windiest?.wind)} km/h · gust ${Math.round(windiest?.gust)} km/h`)
+ ].join("");
+}
 function changeText(current,previous){if(!current||!previous)return "Baseline saved for next refresh";const bits=[],rainDelta=current.rainMax-previous.rainMax,gustDelta=current.gustMax-previous.gustMax,tempMid=((current.tempMin??0)+(current.tempMax??0))/2,prevMid=((previous.tempMin??0)+(previous.tempMax??0))/2,tempDelta=tempMid-prevMid;if(Math.abs(rainDelta)>=10)bits.push(`Rain risk ${rainDelta>0?"↑":"↓"}`);else bits.push("Rain risk unchanged");if(Math.abs(gustDelta)>=5)bits.push(`Wind ${gustDelta>0?"↑":"↓"}`);else bits.push("Wind unchanged");if(Math.abs(tempDelta)>=2)bits.push(`Temperature ${tempDelta>0?"↑":"↓"}`);return bits.join(" · ")}
 function formatUpdatedTime(ts){try{return new Intl.DateTimeFormat("en-GB",{timeZone:"Europe/Vienna",hour:"2-digit",minute:"2-digit",hour12:false}).format(new Date(ts))}catch(e){return new Date(ts).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}}
 function renderFreshness(ts,offline=false){const el=document.getElementById("forecastFreshness");if(!el)return;el.classList.toggle("offline",offline);el.textContent=ts?(offline?`Offline · Last updated ${formatUpdatedTime(ts)}`:`Updated ${formatUpdatedTime(ts)}`):""}
@@ -1945,20 +1998,18 @@ function circularMeanDeg(v){v=v.filter(Number.isFinite);if(!v.length)return null
 function windEffectLabel(rb,wf,ws){if(!Number.isFinite(rb)||!Number.isFinite(wf)||!Number.isFinite(ws))return null;if(ws<4)return{label:"Light / little effect"};const wt=(wf+180)%360,d=((wt-rb+540)%360)-180,f=Math.cos(d*Math.PI/180);let label="Crosswind";if(f>=.70)label="Tailwind";else if(f>=.20)label="Cross-tailwind";else if(f<=-.70)label="Headwind";else if(f<=-.20)label="Cross-headwind";return{label};}
 function renderTimelineFromBundles(bundles,s){
  const stillLoading=anyDeterministicPending(s);const currentIdx=currentRoutePointIndex(bundles,s);
- document.getElementById("timeline").innerHTML=bundles.map((b,idx)=>{const rs=b.forecasts.filter(Boolean),disp=rs[0]||b.best;const activeClass=idx===currentIdx?" currentRoutePoint":"",badge=idx===currentIdx?`<span class="routePointBadge">NEXT</span>`:"";if(!disp){const status=stillLoading?"Loading forecast…":"Forecast not yet in range";return `<div class="stop${activeClass}"><div class="stopPlace">${b.p.label==="Start"?s.start:b.p.label==="Finish"?s.finish:b.p.label}${badge}</div><div class="stopMeta">${b.p.km} km · ${b.p.ele} m · ~${rideClock(b.p.ride_h,s,b.p.km)}</div><div class="risk">${status}</div></div>`}const temps=rs.map(x=>x.temp).filter(Number.isFinite),meanT=temps.length?Math.round(temps.reduce((a,c)=>a+c,0)/temps.length):Math.round(disp.temp),wetN=rs.filter(wet).length,code=rs.some(x=>x.code>=95)?95:wetN?80:disp.code,prob=b.best?.rain,winds=rs.map(x=>x.wind).filter(Number.isFinite),gusts=rs.map(x=>x.gust).filter(Number.isFinite),windDirs=rs.map(x=>x.wdir).filter(Number.isFinite),wind=Math.round(winds.length?winds.reduce((a,c)=>a+c,0)/winds.length:0),gust=Math.round(gusts.length?gusts.reduce((a,c)=>a+c,0)/gusts.length:0),meanWindDir=circularMeanDeg(windDirs),routeBearing=routeBearingAtKm(s,b.p.km),windEffect=windEffectLabel(routeBearing,meanWindDir,wind),cond=rs.some(x=>x.code>=95)?"Thunder":wetN>=2?"Rain/showers":wetN===1?"Possible shower":WDESC[code]||"Dry",cclass=rs.some(x=>x.code>=95)?"danger":wetN>=2?"rainWet":"";const detail=MODELS.map(md=>{const r=b.forecasts.find(x=>x&&x.source.id===md.id);if(r){
-         let rainProb=Number.isFinite(r.rain)?Math.round(r.rain)+"%":"—";
-         if(md.id==="ecmwf"&&!Number.isFinite(r.rain)){
-           const ep=pointEnsembleRainProbability(ensembleCache[s.key],s,b.p,idx);
-           if(Number.isFinite(ep))rainProb=ep+"% ENS";
-         }
-         return `<div class="modelRow"><b>${md.label}</b><span>${Math.round(r.temp)}°</span><span>Rain ${r.precip.toFixed(1)} mm/h · ${rainProb}</span><span>${Math.round(r.wind)} / ${Math.round(r.gust)} km/h</span></div>`;
-       }if(isResultPending(s,md.id))return `<div class="modelRow"><b>${md.label}</b><span>…</span><span>loading…</span><span>…</span></div>`;return `<div class="modelRow"><b>${md.label}</b><span>—</span><span>not in range</span><span>—</span></div>`}).join("");return `<div class="stop${activeClass}"><div class="stopMain"><div><div class="stopPlace"><span class="stopName">${b.p.label==="Start"?s.start:b.p.label==="Finish"?s.finish:b.p.label}</span>${badge}</div><div class="stopMeta">${b.p.km} km · ${b.p.ele} m · ~${rideClock(b.p.ride_h,s,b.p.km)}</div></div><div class="pointWeather"><div class="pointCondition"><div class="wxIcon" aria-hidden="true">${WICON(code)}</div><div class="conditionText">${cond}</div></div><div class="pointMetrics"><div class="pointMetricRow"><span class="pointMetricLabel">Temp</span><span class="pointMetricValue">${meanT}°</span></div><div class="pointMetricRow"><span class="pointMetricLabel">Rain</span><span class="pointMetricValue ${cclass}">${prob==null?"—":Math.round(prob)+"%"}</span></div><div class="pointMetricRow"><span class="pointMetricLabel">Wind</span><span class="pointMetricValue">${wind} km/h</span></div><div class="pointGust">gust ${gust} km/h</div>${windEffect?`<div class="pointGust pointWindEffect">${windEffect.label}</div>`:""}</div></div></div><details><summary>${b.conf.label.replace(" forecast consensus"," consensus")} · show detail</summary><div class="modelGrid">${detail}</div></details></div>`}).join("");renderWorstHighlights(bundles,s);
+ document.getElementById("timeline").innerHTML=bundles.map((b,idx)=>{const rs=b.forecasts.filter(Boolean),disp=rs[0]||b.best;const activeClass=idx===currentIdx?" currentRoutePoint":"",badge=idx===currentIdx?`<span class="routePointBadge">NEXT</span>`:"";if(!disp){const status=stillLoading?"Loading forecast…":"Forecast not yet in range";return `<div class="stop${activeClass}"><div class="stopPlace">${b.p.label==="Start"?s.start:b.p.label==="Finish"?s.finish:b.p.label}${badge}</div><div class="stopMeta">${b.p.km} km · ${b.p.ele} m · ~${rideClock(b.p.ride_h,s,b.p.km)}</div><div class="risk">${status}</div></div>`}
+ const cp=bundleSummaryPoint(b,s,idx),meanT=Math.round(cp.temp),wind=Math.round(cp.wind),gust=Math.round(cp.gust),prob=cp.rainProb,meanWindDir=cp.wdir,routeBearing=routeBearingAtKm(s,b.p.km),windEffect=windEffectLabel(routeBearing,meanWindDir,wind);
+ const wetN=rs.filter(wet).length,need=Math.max(1,Math.ceil(rs.length/2)),thunderN=rs.filter(x=>x.code>=95).length,thunder=thunderN>=need,wetConsensus=wetN>=need;
+ const code=thunder?95:wetConsensus?80:wetN>0?80:disp.code,cond=thunder?"Thunder":wetConsensus?"Rain/showers":wetN>0?"Possible shower":WDESC[code]||"Dry",cclass=thunder?"danger":wetConsensus?"rainWet":"";
+ const detail=MODELS.map(md=>{const r=b.forecasts.find(x=>x&&x.source.id===md.id);if(r){let rainProb=Number.isFinite(r.rain)?Math.round(r.rain)+"%":"—";if(md.id==="ecmwf"&&!Number.isFinite(r.rain)){const ep=pointEnsembleRainProbability(ensembleCache[s.key],s,b.p,idx);if(Number.isFinite(ep))rainProb=ep+"% ENS";}return `<div class="modelRow"><b>${md.label}</b><span>${Math.round(r.temp)}°</span><span>Rain ${r.precip.toFixed(1)} mm/h · ${rainProb}</span><span>${Math.round(r.wind)} / ${Math.round(r.gust)} km/h</span></div>`;}if(isResultPending(s,md.id))return `<div class="modelRow"><b>${md.label}</b><span>…</span><span>loading…</span><span>…</span></div>`;return `<div class="modelRow"><b>${md.label}</b><span>—</span><span>not in range</span><span>—</span></div>`}).join("");
+ return `<div class="stop${activeClass}"><div class="stopMain"><div><div class="stopPlace"><span class="stopName">${b.p.label==="Start"?s.start:b.p.label==="Finish"?s.finish:b.p.label}</span>${badge}</div><div class="stopMeta">${b.p.km} km · ${b.p.ele} m · ~${rideClock(b.p.ride_h,s,b.p.km)}</div></div><div class="pointWeather"><div class="pointCondition"><div class="wxIcon" aria-hidden="true">${WICON(code)}</div><div class="conditionText">${cond}</div></div><div class="pointMetrics"><div class="pointMetricRow"><span class="pointMetricLabel">Temp</span><span class="pointMetricValue">${meanT}°</span></div><div class="pointMetricRow"><span class="pointMetricLabel">Rain</span><span class="pointMetricValue ${cclass}">${prob==null?"—":Math.round(prob)+"%"}</span></div><div class="pointMetricRow"><span class="pointMetricLabel">Wind</span><span class="pointMetricValue">${wind} km/h</span></div><div class="pointGust">gust ${gust} km/h</div>${windEffect?`<div class="pointGust pointWindEffect">${windEffect.label}</div>`:""}</div></div></div><details><summary>${b.conf.label.replace(" forecast consensus"," consensus")} · show detail</summary><div class="modelGrid">${detail}</div></details></div>`}).join("");renderWorstHighlights(bundles,s);
 }
 function renderDeterministicResults(results,s,token,ensembleState){
  if(token!==renderToken || s!==stage())return {sm:null,error:null};
 
  const bundles=buildBundlesFromResults(results,s,false);
- const sm=summarize(bundles);
+ const sm=summarize(bundles,s);
  if(!sm){
    if(anyDeterministicPending(s))return {sm:null,error:null};
    const anySuccess=results.some(x=>x.ok);
@@ -1966,7 +2017,7 @@ function renderDeterministicResults(results,s,token,ensembleState){
  }
 
  const consensusBundles=buildBundlesFromResults(results,s,true);
- const consensusSm=summarize(consensusBundles);
+ const consensusSm=summarize(consensusBundles,s);
  const loadedModels=results.filter(x=>x.ok && x.src.id!=="best").length;
 
  const ag=document.getElementById("agreement");
@@ -1987,20 +2038,21 @@ function renderDeterministicResults(results,s,token,ensembleState){
  document.getElementById("mSkyIcon").innerHTML=sm.sky.icon;
  document.getElementById("mSkySub").textContent=sm.sky.label;
  document.getElementById("mRain").textContent=sm.rp===null?"—":sm.rp+"%";
- document.getElementById("mRainSub").textContent="forecast probability";
+ document.getElementById("mRainSub").textContent="highest route-point consensus";
+ document.getElementById("mWind").textContent=Number.isFinite(sm.wmax)?sm.wmax+" km/h":"—";
+ document.getElementById("mWindSub").textContent=Number.isFinite(sm.gmax)?`peak gusts ~${sm.gmax} km/h`:"";
 
  if(ensembleState.resolved){
    renderEnsembleRisk(ensembleStageRisk(ensembleState.data,s),sm.gmax);
  }else{
-   document.getElementById("mWind").textContent="Loading…";
-   document.getElementById("mWindSub").textContent="calculating likely wind + gust range";
+   // Ensemble spread loads independently; central cards remain deterministic consensus.
  }
 
  renderTimelineFromBundles(bundles,s);
  return {sm,error:null};
 }
 async function showWeather(s,force,token){
- const cachedBefore=safeStoreGet(s);try{const ensembleState={resolved:false,data:null};let lastSm=null,lastError=null;const sunPromise=fetchSunTimes(s,force).then(data=>{if(token!==renderToken||s!==stage())return null;if(data)renderSunTimes(data,s);return data}).catch(()=>null);const ensemblePromise=new Promise(resolve=>setTimeout(resolve,450)).then(()=>fetchEnsemble(s,force)).then(data=>{ensembleState.resolved=true;ensembleState.data=data;if(token!==renderToken||s!==stage())return data;if(lastSm)renderEnsembleRisk(ensembleStageRisk(data,s),lastSm.gmax);return data}).catch(()=>{ensembleState.resolved=true;ensembleState.data=null;if(token!==renderToken||s!==stage())return null;if(lastSm)renderEnsembleRisk(null,lastSm.gmax);return null});const deterministicPromise=fetchAllProgressive(s,force,(results)=>{const rendered=renderDeterministicResults(results,s,token,ensembleState);if(rendered.sm)lastSm=rendered.sm;if(rendered.error)lastError=rendered.error});const finalResults=await deterministicPromise;if(token!==renderToken||s!==stage())return;const finalRendered=renderDeterministicResults(finalResults,s,token,ensembleState);if(finalRendered.sm)lastSm=finalRendered.sm;if(finalRendered.error)lastError=finalRendered.error;await Promise.allSettled([sunPromise,ensemblePromise]);if(token!==renderToken||s!==stage())return;if(!lastSm)throw(lastError||new Error("Forecast not yet available"));const finalBundles=buildBundlesFromResults(finalResults,s,false),snap=forecastSnapshot(finalBundles,s);if(snap){let change="";if(force){change=changeText(snap,cachedBefore?.snapshot||null);lastChangeTextByStage[s.key]=change}else change=lastChangeTextByStage[s.key]||cachedBefore?.change||"";document.getElementById("forecastChange").textContent=change;renderFreshness(snap.ts,false);const cached=captureOfflineUI(s,snap);cached.change=change;safeStoreSet(s,cached)}}catch(e){if(token!==renderToken||s!==stage())return;if(restoreOfflineUI(s,cachedBefore))return;document.getElementById("timeline").innerHTML=`<div class="error">${e.message} Try Refresh if this persists.</div>`;document.getElementById("outlook").textContent="Forecast not yet available";document.getElementById("explain").textContent="The route remains available; live weather needs internet access and a model horizon that reaches this date.";document.getElementById("agreement").className="agree low";document.getElementById("agreement").textContent="NOT IN RANGE";document.getElementById("forecastChange").textContent="";renderFreshness(null,false)}}
+ const cachedBefore=safeStoreGet(s);try{const ensembleState={resolved:false,data:null};let lastSm=null,lastError=null;const sunPromise=fetchSunTimes(s,force).then(data=>{if(token!==renderToken||s!==stage())return null;if(data)renderSunTimes(data,s);return data}).catch(()=>null);const ensemblePromise=new Promise(resolve=>setTimeout(resolve,450)).then(()=>fetchEnsemble(s,force)).then(data=>{ensembleState.resolved=true;ensembleState.data=data;if(token!==renderToken||s!==stage())return data;if(lastSm){renderEnsembleRisk(ensembleStageRisk(data,s),lastSm.gmax);const rr=renderDeterministicResults(fetchedResults(s),s,token,ensembleState);if(rr.sm)lastSm=rr.sm;}return data}).catch(()=>{ensembleState.resolved=true;ensembleState.data=null;if(token!==renderToken||s!==stage())return null;if(lastSm)renderEnsembleRisk(null,lastSm.gmax);return null});const deterministicPromise=fetchAllProgressive(s,force,(results)=>{const rendered=renderDeterministicResults(results,s,token,ensembleState);if(rendered.sm)lastSm=rendered.sm;if(rendered.error)lastError=rendered.error});const finalResults=await deterministicPromise;if(token!==renderToken||s!==stage())return;const finalRendered=renderDeterministicResults(finalResults,s,token,ensembleState);if(finalRendered.sm)lastSm=finalRendered.sm;if(finalRendered.error)lastError=finalRendered.error;await Promise.allSettled([sunPromise,ensemblePromise]);if(token!==renderToken||s!==stage())return;if(!lastSm)throw(lastError||new Error("Forecast not yet available"));const finalBundles=buildBundlesFromResults(finalResults,s,false),snap=forecastSnapshot(finalBundles,s);if(snap){let change="";if(force){change=changeText(snap,cachedBefore?.snapshot||null);lastChangeTextByStage[s.key]=change}else change=lastChangeTextByStage[s.key]||cachedBefore?.change||"";document.getElementById("forecastChange").textContent=change;renderFreshness(snap.ts,false);const cached=captureOfflineUI(s,snap);cached.change=change;safeStoreSet(s,cached)}}catch(e){if(token!==renderToken||s!==stage())return;if(restoreOfflineUI(s,cachedBefore))return;document.getElementById("timeline").innerHTML=`<div class="error">${e.message} Try Refresh if this persists.</div>`;document.getElementById("outlook").textContent="Forecast not yet available";document.getElementById("explain").textContent="The route remains available; live weather needs internet access and a model horizon that reaches this date.";document.getElementById("agreement").className="agree low";document.getElementById("agreement").textContent="NOT IN RANGE";document.getElementById("forecastChange").textContent="";renderFreshness(null,false)}}
 function initMap(){
  if(map)return;
  map=L.map("map");L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18,attribution:"© OpenStreetMap"}).addTo(map);
@@ -2127,5 +2179,61 @@ window.addEventListener("online",()=>{const el=document.getElementById("forecast
 document.getElementById("routeDetails").addEventListener("toggle",()=>{if(document.getElementById("routeDetails").open)drawRoute(stage())});
 render(false);
 </script>
+
+<script>
+(function(){
+  const reduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduced)return;
+  const el=document.getElementById('alongHighlights');
+  if(!el)return;
+  let timer=null, resumeTimer=null, interacting=false;
+  function cards(){return Array.from(el.querySelectorAll('.alongHighlight'));}
+  function nearestIndex(items){
+    if(!items.length)return 0;
+    let best=0,dist=Infinity;
+    for(let i=0;i<items.length;i++){
+      const d=Math.abs(items[i].offsetLeft-el.scrollLeft);
+      if(d<dist){dist=d;best=i;}
+    }
+    return best;
+  }
+  function advance(){
+    if(interacting)return;
+    const items=cards();
+    if(items.length<2)return;
+    const i=nearestIndex(items);
+    const n=(i+1)%items.length;
+    el.scrollTo({left:items[n].offsetLeft,behavior:'smooth'});
+  }
+  function start(){
+    if(interacting)return;
+    clearInterval(timer);
+    timer=setInterval(advance,3600);
+  }
+  function hold(){
+    interacting=true;
+    clearInterval(timer);
+    clearTimeout(resumeTimer);
+  }
+  function release(){
+    interacting=false;
+    clearTimeout(resumeTimer);
+    resumeTimer=setTimeout(start,5000);
+  }
+  el.addEventListener('touchstart',hold,{passive:true});
+  el.addEventListener('touchend',release,{passive:true});
+  el.addEventListener('touchcancel',release,{passive:true});
+  el.addEventListener('pointerdown',hold,{passive:true});
+  window.addEventListener('pointerup',release,{passive:true});
+  el.addEventListener('wheel',()=>{hold();release();},{passive:true});
+  const mo=new MutationObserver(()=>{
+    el.scrollTo({left:0,behavior:'auto'});
+    start();
+  });
+  mo.observe(el,{childList:true});
+  start();
+})();
+</script>
+
 </body>
 </html>
