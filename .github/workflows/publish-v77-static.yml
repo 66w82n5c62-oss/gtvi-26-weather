@@ -4,7 +4,6 @@ on:
   push:
     paths:
       - '.github/workflows/publish-v77-static.yml'
-      - '.github/v77_static.patch'
 
 permissions:
   contents: write
@@ -20,8 +19,33 @@ jobs:
       - name: Build complete static v77
         shell: bash
         run: |
-          cp preview-v75.html preview-v77.html
-          patch preview-v77.html < .github/v77_static.patch
+          python3 - <<'PY'
+          from pathlib import Path
+          s=Path('preview-v75.html').read_text(encoding='utf-8')
+          s=s.replace('<title>GTVI 26 Weather App · Mobile v75 Preview</title>','<title>GTVI 26 Weather App · Mobile v77 Preview</title>',1)
+          reps={'--muted:#a6b9ca;':'--muted:#bac9d6;','color:#7891a6':'color:#94a9ba','color:#7f98ad':'color:#9bb0c0','color:#839aaf':'color:#9dafbf','color:#8199ae':'color:#9eb1c0','color:#8ca5ba':'color:#a8bac8','color:#8fa7bb':'color:#aabcca','color:#8fa8bc':'color:#aabcca','color:#93aac0':'color:#aec0cd','color:#9fb4c6':'color:#b9c8d3','color:#a8bdce':'color:#bdcbd6','color:#a9bfd2':'color:#bfced9','color:#a9c4dc':'color:#bfd4e5'}
+          for a,b in reps.items(): s=s.replace(a,b)
+          css='''\n/* v76: slightly brighter secondary text for improved mobile readability */\n.date,.metricSub,.timeHint,.breakSub,.breakSummary,.consensusHint,.mobileWayTitle .wayTimingInline,.mobileSunCompact,.mobilePlanNote,.stopMeta,.pointMetricLabel,.pointGust,.aboutForecastBody,.aboutForecastFoot{filter:brightness(1.08);}\n'''
+          s=s.replace('</style>',css+'\n</style>',1)
+          old='<div class="alongHighlight"><b>Wettest</b>${wettest.time} · around ${Math.round(wettest.km)} km · ${wetDetail}</div><div class="alongHighlight"><b>Strongest gusts</b>${gustiest.time} · around ${Math.round(gustiest.km)} km · ${Math.round(gustiest.gust)} km/h</div>'
+          new='<div class="alongHighlight"><b>Wettest</b>${wettest.time} · around ${Math.round(wettest.km)} km · ${wetDetail}</div>'
+          if old not in s: raise SystemExit('worst-highlight anchor missing')
+          s=s.replace(old,new,1)
+          about='<li><b>Weather along the way</b> is matched to your expected position on the route based on the start time, riding speed and planned stops entered in the RIDE PLAN above.</li>'
+          s=s.replace(about,about+'\n      <li><b>Wind effect</b> compares forecast wind direction with the actual route bearing at each point, showing tailwind, cross-tailwind, crosswind, cross-headwind or headwind.</li>',1)
+          helpers='''function bearingDeg(a,b){const r=x=>x*Math.PI/180,d=x=>x*180/Math.PI,p1=r(a.lat),p2=r(b.lat),dl=r(b.lon-a.lon),y=Math.sin(dl)*Math.cos(p2),x=Math.cos(p1)*Math.sin(p2)-Math.sin(p1)*Math.cos(p2)*Math.cos(dl);return(d(Math.atan2(y,x))+360)%360;}\nfunction routeBearingAtKm(s,km){const line=s.line||[];if(line.length<2)return null;let i=line.findIndex(p=>p.km>=km);if(i<=0)i=1;if(i>=line.length)i=line.length-1;return bearingDeg(line[i-1],line[i]);}\nfunction circularMeanDeg(v){v=v.filter(Number.isFinite);if(!v.length)return null;const sy=v.reduce((a,d)=>a+Math.sin(d*Math.PI/180),0),sx=v.reduce((a,d)=>a+Math.cos(d*Math.PI/180),0);return(Math.atan2(sy,sx)*180/Math.PI+360)%360;}\nfunction windEffectLabel(rb,wf,ws){if(!Number.isFinite(rb)||!Number.isFinite(wf)||!Number.isFinite(ws))return null;if(ws<4)return{label:"Light / little effect"};const wt=(wf+180)%360,d=((wt-rb+540)%360)-180,f=Math.cos(d*Math.PI/180);let label="Crosswind";if(f>=.70)label="Tailwind";else if(f>=.20)label="Cross-tailwind";else if(f<=-.70)label="Headwind";else if(f<=-.20)label="Cross-headwind";return{label};}\n'''
+          anchor='function renderTimelineFromBundles(bundles,s){'
+          if anchor not in s: raise SystemExit('timeline anchor missing')
+          s=s.replace(anchor,helpers+anchor,1)
+          oldseq='prob=b.best?.rain,winds=rs.map(x=>x.wind).filter(Number.isFinite),gusts=rs.map(x=>x.gust).filter(Number.isFinite),wind=Math.round(winds.length?winds.reduce((a,c)=>a+c,0)/winds.length:0),gust=Math.round(gusts.length?gusts.reduce((a,c)=>a+c,0)/gusts.length:0),cond='
+          newseq='prob=b.best?.rain,winds=rs.map(x=>x.wind).filter(Number.isFinite),gusts=rs.map(x=>x.gust).filter(Number.isFinite),windDirs=rs.map(x=>x.wdir).filter(Number.isFinite),wind=Math.round(winds.length?winds.reduce((a,c)=>a+c,0)/winds.length:0),gust=Math.round(gusts.length?gusts.reduce((a,c)=>a+c,0)/gusts.length:0),meanWindDir=circularMeanDeg(windDirs),routeBearing=routeBearingAtKm(s,b.p.km),windEffect=windEffectLabel(routeBearing,meanWindDir,wind),cond='
+          if oldseq not in s: raise SystemExit('wind summary anchor missing')
+          s=s.replace(oldseq,newseq,1)
+          gustline='<div class="pointGust">gust ${gust} km/h</div>'
+          if gustline not in s: raise SystemExit('gust display anchor missing')
+          s=s.replace(gustline,gustline+'${windEffect?`<div class="pointGust">${windEffect.label}</div>`:""}',1)
+          Path('preview-v77.html').write_text(s,encoding='utf-8')
+          PY
           python3 - <<'PY' > /tmp/v77-check.js
           import re
           s=open('preview-v77.html',encoding='utf-8').read()
