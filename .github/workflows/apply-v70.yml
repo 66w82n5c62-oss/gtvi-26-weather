@@ -1,0 +1,47 @@
+name: Apply mobile v70
+
+on:
+  push:
+    paths:
+      - '.github/workflows/apply-v70.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Move Lunch Distance Time controls left
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text()
+          old = '''.mobileStopName{
+            grid-column:1/-1;
+            font-size:11px;
+            font-weight:800;
+            line-height:1.25;
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:8px;
+          }'''
+          new = old.replace('justify-content:space-between;','justify-content:flex-start;')
+          if old not in s:
+              raise SystemExit('Expected mobileStopName block not found')
+          s = s.replace(old,new,1)
+          s = s.replace('<title>GTVI 26 Weather App · Mobile v69</title>','<title>GTVI 26 Weather App · Mobile v70</title>',1)
+          p.write_text(s)
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git commit -m 'Move Lunch Distance Time controls left in mobile v70'
+          git push origin main
