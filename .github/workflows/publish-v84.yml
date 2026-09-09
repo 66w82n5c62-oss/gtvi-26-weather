@@ -3,6 +3,7 @@ on:
   push:
     paths:
       - '.github/workflows/publish-v84.yml'
+      - '.github/v84-builder.py'
 permissions:
   contents: write
 jobs:
@@ -26,7 +27,9 @@ jobs:
           grep -q 'Coldest' preview-v84.html
           grep -q 'Warmest' preview-v84.html
           grep -q 'Sunniest' preview-v84.html
+          grep -q 'Wettest' preview-v84.html
           grep -q 'Windiest' preview-v84.html
+          grep -q 'inputmode="numeric"' preview-v84.html
           ! grep -Eq '☀️|☀|🌤️|⛅|🌞|🌥️|🌦️' preview-v84.html
       - name: Publish preview
         run: |
