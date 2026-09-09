@@ -1,0 +1,333 @@
+--- preview-v77.html
++++ preview-v77.html
+@@ -4,12 +4,12 @@
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+ <meta name="theme-color" content="#081522">
+-<title>GTVI 26 Weather App · Mobile v75 Preview</title>
++<title>GTVI 26 Weather App · Mobile v77 Preview</title>
+ <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+ <style>
+ :root {
+   --bg:#081522; --card:#102237; --card2:#132a42; --line:#28445f;
+-  --text:#f4f8fc; --muted:#a6b9ca; --blue:#58b7f4; --good:#87d7c8;
++  --text:#f4f8fc; --muted:#bac9d6; --blue:#58b7f4; --good:#87d7c8;
+   --amber:#f1cc74; --red:#ff9a7d;
+ }
+ *{box-sizing:border-box}
+@@ -37,7 +37,7 @@
+   align-items:center;
+   justify-content:flex-end;
+   font-size:11px;
+-  color:#9fb4c6;
++  color:#b9c8d3;
+   white-space:nowrap;
+ }
+ .headerSun b{
+@@ -79,7 +79,7 @@
+ }
+ .sunMetric{
+   font-size:11px;
+-  color:#9fb4c6;
++  color:#b9c8d3;
+   white-space:nowrap;
+ }
+ .sunMetric b{
+@@ -114,7 +114,7 @@
+   line-height:1.15;
+   text-transform:uppercase;
+   letter-spacing:.06em;
+-  color:#8fa8bc;
++  color:#aabcca;
+   font-weight:800;
+ }
+ .rideFactNote{
+@@ -123,7 +123,7 @@
+   text-align:center;
+   font-size:8.5px;
+   line-height:1.15;
+-  color:#7891a6;
++  color:#94a9ba;
+ }
+ 
+ .rideFactControl{
+@@ -196,7 +196,7 @@
+   }
+ }
+ 
+-.eyebrow{font-size:12px;color:#a9c4dc;text-transform:uppercase;letter-spacing:.08em;font-weight:700}
++.eyebrow{font-size:12px;color:#bfd4e5;text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+ @media(max-width:620px){
+  .heroTop{flex-direction:column;gap:10px}
+  .heroRight{width:100%;align-items:flex-start}
+@@ -212,18 +212,18 @@
+ .explain{font-size:13px;line-height:1.45;color:#c1d1df}
+ .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:11px 0}
+ .metric{background:var(--card);border:1px solid #213d58;border-radius:14px;padding:11px}
+-.metric .label{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:#8fa7bb}
++.metric .label{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:#aabcca}
+ .metric .value{font-weight:820;font-size:19px;margin-top:3px}
+ .metricSub{font-size:10px;color:var(--muted);margin-top:2px;line-height:1.35}
+ .riskBox{margin-top:11px;background:#0d1f31;border:1px solid #294660;border-radius:13px;padding:11px 12px}
+ .riskHead{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px}
+ .riskTitle{font-size:12px;font-weight:850;text-transform:uppercase;letter-spacing:.06em;color:#bdd1e2}
+-.riskSource{font-size:10px;color:#7f98ad}
++.riskSource{font-size:10px;color:#9bb0c0}
+ .riskRows{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+ .riskRow{background:#10263b;border-radius:10px;padding:9px}
+-.riskRowTitle{font-size:10px;color:#8ca5ba;text-transform:uppercase;letter-spacing:.06em}
++.riskRowTitle{font-size:10px;color:#a8bac8;text-transform:uppercase;letter-spacing:.06em}
+ .riskMain{font-size:14px;font-weight:850;margin-top:3px}
+-.riskDetail{font-size:10px;color:#a8bdce;margin-top:3px;line-height:1.45}
++.riskDetail{font-size:10px;color:#bdcbd6;margin-top:3px;line-height:1.45}
+ .riskChips{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
+ .riskChip{font-size:10px;border:1px solid #35536d;border-radius:999px;padding:3px 6px;color:#c6d6e3}
+ @media(max-width:700px){.riskRows{grid-template-columns:1fr}}
+@@ -279,7 +279,7 @@
+   filter:invert(1);
+   opacity:.9;
+ }
+-.timeHint{font-size:10px;color:#839aaf}
++.timeHint{font-size:10px;color:#9dafbf}
+ .routeControl{display:flex;flex-direction:column;gap:5px}
+ .routeControl select{height:44px;background:#0c1c2c;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:0 10px;font-weight:700}
+ .speedControl{display:flex;flex-direction:column;gap:5px}
+@@ -293,13 +293,13 @@
+ .breakName{font-size:13px;font-weight:800}
+ .breakSub{font-size:10px;color:var(--muted);margin-top:2px}
+ .modeToggle{display:flex;gap:4px;margin-top:6px}
+-.modeBtn{border:1px solid #31506b;background:#0d2134;color:#a9bfd2;border-radius:8px;padding:5px 7px;font-size:10px;font-weight:750;cursor:pointer}
++.modeBtn{border:1px solid #31506b;background:#0d2134;color:#bfced9;border-radius:8px;padding:5px 7px;font-size:10px;font-weight:750;cursor:pointer}
+ .modeBtn.active{background:#1c496f;color:#fff;border-color:var(--blue)}
+-.miniLabel{font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:#8199ae;margin-bottom:4px}
++.miniLabel{font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:#9eb1c0;margin-bottom:4px}
+ .miniStepper{display:grid;grid-template-columns:36px 1fr 36px;gap:5px;align-items:center}
+ .miniBtn{height:36px;border:1px solid #315574;background:#102a42;color:var(--text);border-radius:9px;font-size:18px;font-weight:850;cursor:pointer}
+ .miniValue{height:36px;display:flex;align-items:center;justify-content:center;background:#0c1c2c;border:1px solid #2d4a64;border-radius:9px;font-size:13px;font-weight:800}
+-.breakSummary{font-size:11px;color:#93aac0;margin-top:8px;line-height:1.45}
++.breakSummary{font-size:11px;color:#aec0cd;margin-top:8px;line-height:1.45}
+ @media(max-width:620px){.breakRow{grid-template-columns:1fr 1fr;gap:8px}.breakName{grid-column:1/-1}.breakRow .distCtl,.breakRow .durCtl{min-width:0}}
+ @media(max-width:420px){.controls{align-items:stretch}.routeControl{min-width:110px}.timeStepper{grid-template-columns:44px 112px 44px}.timeInput{width:112px;min-width:112px}.speedStepper{grid-template-columns:44px 72px 44px}.miniStepper{grid-template-columns:34px 1fr 34px}}
+ .sectionTitle{font-size:15px;font-weight:800;margin:17px 2px 9px}
+@@ -314,7 +314,7 @@
+ .rainInfo,.windInfo{font-size:11px;line-height:1.35}
+ .rainInfo{text-align:center}
+ .windInfo{text-align:right}
+-.infoLabel{display:block;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:#8199ae;margin-bottom:2px}
++.infoLabel{display:block;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:#9eb1c0;margin-bottom:2px}
+ .infoMain{font-size:12px;font-weight:800;color:#eef6ff}
+ .infoSub{font-size:10px;color:#9fb3c5;margin-top:1px}
+ .rainWet{color:#9ed9ff} .risk{color:var(--amber);font-weight:750} .danger{color:#ffb19c;font-weight:800}
+@@ -392,7 +392,7 @@
+   margin:0;
+   font-size:8.5px;
+   line-height:1.25;
+-  color:#7891a6;
++  color:#94a9ba;
+   text-align:center;
+ }
+ .weatherAlongBox{
+@@ -480,7 +480,7 @@
+ .mobileWayTitle .wayTimingInline{
+   font-weight:400;
+   font-size:9.5px;
+-  color:#7891a6;
++  color:#94a9ba;
+ }
+ .mobileSunCompact{
+   display:flex;
+@@ -489,12 +489,12 @@
+   margin-top:4px;
+   font-size:9px;
+   line-height:1;
+-  color:#7891a6;
++  color:#94a9ba;
+   white-space:nowrap;
+ }
+ .mobileSunCompact b{
+   font-size:9px;
+-  color:#9fb4c6;
++  color:#b9c8d3;
+   font-weight:750;
+ }
+ 
+@@ -526,7 +526,7 @@
+   font-size:9px;
+   text-transform:uppercase;
+   letter-spacing:.06em;
+-  color:#8fa8bc;
++  color:#aabcca;
+   font-weight:800;
+   margin-bottom:5px;
+ }
+@@ -561,7 +561,7 @@
+   font-weight:850;
+   font-variant-numeric:tabular-nums;
+ }
+-.komootNote{font-size:9px;color:#7891a6;text-align:center;margin:6px 0 8px}
++.komootNote{font-size:9px;color:#94a9ba;text-align:center;margin:6px 0 8px}
+ 
+ .mobileStats{
+   display:grid;
+@@ -801,7 +801,7 @@
+   max-width:48px;
+   font-size:8px;
+   line-height:1.05;
+-  color:#8fa8bc;
++  color:#aabcca;
+   font-weight:700;
+   text-align:center;
+ }
+@@ -820,7 +820,7 @@
+ }
+ .pointMetricLabel{
+   font-size:8px;
+-  color:#7891a6;
++  color:#94a9ba;
+   font-weight:700;
+   text-transform:uppercase;
+   letter-spacing:.03em;
+@@ -835,7 +835,7 @@
+ .pointGust{
+   margin-top:1px;
+   font-size:8px;
+-  color:#7891a6;
++  color:#94a9ba;
+   font-weight:700;
+   text-align:right;
+   white-space:nowrap;
+@@ -951,7 +951,7 @@
+   padding:0 8px 8px;
+   font-size:9px;
+   line-height:1.45;
+-  color:#8fa8bc;
++  color:#aabcca;
+ }
+ .forecastSources div+div{margin-top:2px}
+ .forecastSources span{
+@@ -1043,7 +1043,7 @@
+ .aboutForecastBody b{color:#dbe9f4}
+ .aboutForecastFoot{
+   margin-bottom:0!important;
+-  color:#7891a6;
++  color:#94a9ba;
+   font-size:9.5px;
+ }
+ 
+@@ -1136,11 +1136,30 @@
+   height:18px;
+ }
+ 
++
++/* v76: slightly brighter secondary text for improved mobile readability */
++.date,
++.metricSub,
++.timeHint,
++.breakSub,
++.breakSummary,
++.consensusHint,
++.mobileWayTitle .wayTimingInline,
++.mobileSunCompact,
++.mobilePlanNote,
++.stopMeta,
++.pointMetricLabel,
++.pointGust,
++.aboutForecastBody,
++.aboutForecastFoot{
++  filter:brightness(1.08);
++}
++
+ </style>
+ </head>
+ <body>
+ <div class="app">
+-<div class="appTitle">GTVI 26 Weather App <span style="font-size:11px;color:#7891a6;font-weight:700">Mobile</span></div>
++<div class="appTitle">GTVI 26 Weather App <span style="font-size:11px;color:#94a9ba;font-weight:700">Mobile</span></div>
+ <header>
+   <div class="brand">Vienna → Pula <small>Live route forecasts · 12–18 Sep 2026</small></div>
+   <button id="refresh" class="refresh">↻ Refresh</button>
+@@ -1346,6 +1365,7 @@
+       <li>In ECMWF source detail, <b>ENS rain %</b> is derived from the ECMWF ensemble as the share of available members forecasting at least 0.2 mm of precipitation in the matched hour.</li>
+       <li><b>Forecast spread</b> shows the broader spread of likely conditions, using ensemble forecasting to highlight uncertainty.</li>
+       <li><b>Weather along the way</b> is matched to your expected position on the route based on the start time, riding speed and planned stops entered in the RIDE PLAN above.</li>
++      <li><b>Wind effect</b> compares forecast wind direction with the actual route bearing at each point, showing tailwind, cross-tailwind, crosswind, cross-headwind or headwind.</li>
+       <li>Changing the <b>Ride plan</b> changes the point-by-point weather timing, but does not change the overall daily forecast consensus.</li>
+       <li>Forecasts become more reliable as the ride day approaches, so refresh the app regularly and check again before setting off.</li>
+     </ul>
+@@ -2071,7 +2091,7 @@
+     :(wettest.precip>=0.1?`${wettest.precip.toFixed(1)} mm/h`:"little rain signal");
+   el.innerHTML=
+     `<div class="alongHighlight"><b>Wettest</b>${wettest.time} · around ${Math.round(wettest.km)} km · ${wetDetail}</div>`+
+-    `<div class="alongHighlight"><b>Strongest gusts</b>${gustiest.time} · around ${Math.round(gustiest.km)} km · ${Math.round(gustiest.gust)} km/h</div>`;
++    ``;
+ }
+ function changeText(current,previous){
+   if(!current||!previous)return "Baseline saved for next refresh";
+@@ -2140,6 +2160,45 @@
+   return true;
+ }
+ 
++
++function bearingDeg(a,b){
++  const toRad=x=>x*Math.PI/180, toDeg=x=>x*180/Math.PI;
++  const p1=toRad(a.lat), p2=toRad(b.lat), dl=toRad(b.lon-a.lon);
++  const y=Math.sin(dl)*Math.cos(p2);
++  const x=Math.cos(p1)*Math.sin(p2)-Math.sin(p1)*Math.cos(p2)*Math.cos(dl);
++  return (toDeg(Math.atan2(y,x))+360)%360;
++}
++function routeBearingAtKm(s,km){
++  const line=s.line||[];
++  if(line.length<2)return null;
++  let idx=line.findIndex(p=>p.km>=km);
++  if(idx<=0)idx=1;
++  if(idx>=line.length)idx=line.length-1;
++  return bearingDeg(line[idx-1],line[idx]);
++}
++function circularMeanDeg(vals){
++  const v=vals.filter(Number.isFinite);
++  if(!v.length)return null;
++  const sy=v.reduce((a,d)=>a+Math.sin(d*Math.PI/180),0);
++  const sx=v.reduce((a,d)=>a+Math.cos(d*Math.PI/180),0);
++  return (Math.atan2(sy,sx)*180/Math.PI+360)%360;
++}
++function windEffectLabel(routeBearing,windFrom,windSpeed){
++  if(!Number.isFinite(routeBearing)||!Number.isFinite(windFrom)||!Number.isFinite(windSpeed))return null;
++  if(windSpeed<4)return {label:"Light / little effect",along:0,cross:windSpeed};
++  const windTo=(windFrom+180)%360;
++  const diff=((windTo-routeBearing+540)%360)-180;
++  const along=windSpeed*Math.cos(diff*Math.PI/180);
++  const cross=Math.abs(windSpeed*Math.sin(diff*Math.PI/180));
++  const frac=along/windSpeed;
++  let label="Crosswind";
++  if(frac>=0.70)label="Tailwind";
++  else if(frac>=0.20)label="Cross-tailwind";
++  else if(frac<=-0.70)label="Headwind";
++  else if(frac<=-0.20)label="Cross-headwind";
++  return {label,along,cross};
++}
++
+ function renderTimelineFromBundles(bundles,s,ensembleData=null){
+  const stillLoading=anyDeterministicPending(s);
+  const currentIdx=currentRoutePointIndex(bundles,s);
+@@ -2156,8 +2215,12 @@
+     const prob=b.best?.rain;
+     const winds=rs.map(x=>x.wind).filter(Number.isFinite);
+     const gusts=rs.map(x=>x.gust).filter(Number.isFinite);
++    const windDirs=rs.map(x=>x.wdir).filter(Number.isFinite);
+     const wind=Math.round(winds.length?winds.reduce((a,c)=>a+c,0)/winds.length:0);
+     const gust=Math.round(gusts.length?gusts.reduce((a,c)=>a+c,0)/gusts.length:0);
++    const meanWindDir=circularMeanDeg(windDirs);
++    const routeBearing=routeBearingAtKm(s,b.p.km);
++    const windEffect=windEffectLabel(routeBearing,meanWindDir,wind);
+     const cond=rs.some(x=>x.code>=95)?"Thunder":wetN>=2?"Rain/showers":wetN===1?"Possible shower":WDESC[code]||"Dry";
+     const cclass=rs.some(x=>x.code>=95)?"danger":wetN>=2?"rainWet":"";
+     const detail=MODELS.map(md=>{
+@@ -2195,7 +2258,7 @@
+               <span class="pointMetricLabel">Wind</span>
+               <span class="pointMetricValue">${wind} km/h</span>
+             </div>
+-            <div class="pointGust">gust ${gust} km/h</div>
++            <div class="pointGust">gust ${gust} km/h</div>${windEffect?`<div class="pointGust">${windEffect.label}</div>`:""}
+           </div>
+         </div>
+       </div>
