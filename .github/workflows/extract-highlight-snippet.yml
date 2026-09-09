@@ -1,0 +1,35 @@
+name: Extract highlight snippet
+on:
+  push:
+    paths:
+      - '.github/workflows/extract-highlight-snippet.yml'
+permissions:
+  contents: write
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          s=Path('index.html').read_text(encoding='utf-8')
+          keys=['renderWorstHighlights','alongHighlights','forecastChange','currentRoutePointIndex']
+          out=[]
+          for k in keys:
+              i=s.find(k)
+              out.append('\n===== '+k+' =====\n')
+              if i<0:
+                  out.append('NOT FOUND\n')
+              else:
+                  out.append(s[max(0,i-1800):min(len(s),i+5000)])
+          Path('highlight-snippet.txt').write_text(''.join(out),encoding='utf-8')
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add highlight-snippet.txt
+          git commit -m 'Extract highlight code snippet'
+          git push origin main
