@@ -1,0 +1,28 @@
+name: Publish preview v71
+
+on:
+  push:
+    paths:
+      - '.github/workflows/publish-preview-v71.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Copy preview branch page
+        shell: bash
+        run: |
+          git fetch origin preview-v71
+          git show origin/preview-v71:index.html > preview-v71.html
+          git add preview-v71.html
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "Publish v71 preview page"
+          git push origin HEAD:main
