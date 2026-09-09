@@ -1,0 +1,56 @@
+name: Apply preview v71
+
+on:
+  push:
+    branches: [preview-v71]
+    paths:
+      - '.github/workflows/apply-preview-v71.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: preview-v71
+          fetch-depth: 0
+      - name: Apply preview-only iPhone control fixes
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          s = re.sub(r'<title>GTVI 26 Weather App · Mobile v\d+(?: Preview)?</title>', '<title>GTVI 26 Weather App · Mobile v71 Preview</title>', s, count=1)
+          pat = r'(\.mobileTimeInput,\.mobileControlValue\{[^}]*?font-size:)14px;'
+          s, n = re.subn(pat, r'\g<1>12px;', s, count=1, flags=re.S)
+          if n != 1:
+              raise SystemExit('Could not find top Ride Plan value font-size')
+          css = '''
+          .mobileTimeInput{
+            padding:0 2px;
+            line-height:34px;
+          }
+          .mobileTimeInput::-webkit-datetime-edit,
+          .mobileTimeInput::-webkit-datetime-edit-fields-wrapper,
+          .mobileTimeInput::-webkit-datetime-edit-hour-field,
+          .mobileTimeInput::-webkit-datetime-edit-minute-field,
+          .mobileTimeInput::-webkit-datetime-edit-text{
+            font-size:12px;
+            line-height:34px;
+            padding:0;
+          }
+          '''
+          s = s.replace('</style>', css + '\n</style>', 1)
+          p.write_text(s, encoding='utf-8')
+      - name: Commit preview
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git commit -m 'Preview v71 iPhone Ride Plan sizing' || exit 0
+          git push origin HEAD:preview-v71
