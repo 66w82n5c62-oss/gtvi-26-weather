@@ -1,0 +1,50 @@
+name: Publish v73 preview
+
+on:
+  push:
+    paths:
+      - '.github/workflows/publish-v73-preview.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Add per-model rain probability
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          src=Path('preview-v72.html')
+          dst=Path('preview-v73.html')
+          s=src.read_text()
+          s=s.replace('<title>GTVI 26 Weather App · Mobile v72 Reconciled Preview</title>', '<title>GTVI 26 Weather App · Mobile v73 Preview</title>', 1)
+          old='''if(r)return `<div class="modelRow"><b>${md.label}</b><span>${Math.round(r.temp)}°</span><span>${r.precip.toFixed(1)} mm/h</span><span>${Math.round(r.wind)} / ${Math.round(r.gust)} km/h</span></div>`;'''
+          new='''if(r){\n         const rainProb=Number.isFinite(r.rain)?Math.round(r.rain)+"%":"—";\n         return `<div class="modelRow"><b>${md.label}</b><span>${Math.round(r.temp)}°</span><span>${r.precip.toFixed(1)} mm/h · ${rainProb}</span><span>${Math.round(r.wind)} / ${Math.round(r.gust)} km/h</span></div>`;\n       }'''
+          if old not in s:
+              raise SystemExit('Expected model detail row not found')
+          s=s.replace(old,new,1)
+          if 'const rainProb=Number.isFinite(r.rain)' not in s:
+              raise SystemExit('Rain probability patch missing')
+          dst.write_text(s)
+          PY
+          python3 - <<'PY'
+          from pathlib import Path
+          import re, subprocess, sys
+          s=Path('preview-v73.html').read_text()
+          scripts=re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,re.S)
+          Path('/tmp/v73.js').write_text('\n'.join(scripts))
+          r=subprocess.run(['node','--check','/tmp/v73.js'])
+          sys.exit(r.returncode)
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add preview-v73.html
+          git commit -m 'Publish v73 preview with per-model rain probability'
+          git push origin main
