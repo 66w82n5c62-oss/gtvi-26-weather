@@ -21,6 +21,7 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
+          import re
           s=Path('preview-v75.html').read_text()
           s=s.replace('<title>GTVI 26 Weather App · Mobile v75 Preview</title>','<title>GTVI 26 Weather App · Mobile v76 Preview</title>',1)
           repl={
@@ -41,16 +42,21 @@ jobs:
           for a,b in repl.items(): s=s.replace(a,b)
           css='''\n/* v76: slightly brighter secondary text for improved mobile readability */\n.date,\n.metricSub,\n.timeHint,\n.breakSub,\n.breakSummary,\n.consensusHint,\n.mobileWayTitle .wayTimingInline,\n.mobileSunCompact,\n.mobilePlanNote,\n.stopMeta,\n.pointMetricLabel,\n.pointGust,\n.aboutForecastBody,\n.aboutForecastFoot{\n  filter:brightness(1.08);\n}\n'''
           s=s.replace('</style>',css+'\n</style>',1)
+          old='''  el.innerHTML=\n    `<div class="alongHighlight"><b>Wettest</b>${wettest.time} · around ${Math.round(wettest.km)} km · ${wetDetail}</div>`+\n    `<div class="alongHighlight"><b>Strongest gusts</b>${gustiest.time} · around ${Math.round(gustiest.km)} km · ${Math.round(gustiest.gust)} km/h</div>`;'''
+          new='''  el.innerHTML=\n    `<div class="alongHighlight"><b>Wettest</b>${wettest.time} · around ${Math.round(wettest.km)} km · ${wetDetail}</div>`+\n    ``;'''
+          if old not in s: raise SystemExit('Strongest gusts highlight block missing')
+          s=s.replace(old,new,1)
+          required=['Wettest','id="forecastChange"','currentRoutePointIndex','safeStoreGet','Last updated']
+          missing=[x for x in required if x not in s]
+          if missing: raise SystemExit('Missing retained features: '+repr(missing))
+          if 'Strongest gusts' in s: raise SystemExit('Strongest gusts still present')
           Path('preview-v76.html').write_text(s)
+          scripts='\n'.join(re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,re.S))
+          Path('v76-check.js').write_text(scripts)
           PY
-          node --check <(python3 - <<'PY'
-          import re
-          s=open('preview-v76.html').read()
-          print('\n'.join(re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,re.S)))
-          PY
-          )
+          node --check v76-check.js
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add preview-v76.html
-          git commit -m 'Publish v76 preview with brighter secondary text'
+          git commit -m 'Publish v76 preview with brighter text and selected v71 additions'
           git push origin main
