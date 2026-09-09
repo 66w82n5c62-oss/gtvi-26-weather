@@ -58,3 +58,4 @@ jobs:
           git add preview-v77.html
           git commit -m 'Publish hosted v77 preview'
           git push origin main
+          # retry marker 2026-09-09
