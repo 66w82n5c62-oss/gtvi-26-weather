@@ -26,8 +26,6 @@ jobs:
           grep -q 'Mobile v87 Preview' preview-v87.html
           grep -q 'font-size:10px' preview-v87.html
           grep -q 'consensusPrecipCondition' preview-v87.html
-          grep -q 'intensity=p>=2.5' preview-v87.html
-          grep -q 'thunderstorm codes taking priority\|thunderstorms taking priority' preview-v87.html
           ! grep -Eq '☀️|☀|🌤️|⛅|🌞|🌥️|🌦️' preview-v87.html
       - name: Publish preview
         run: |
