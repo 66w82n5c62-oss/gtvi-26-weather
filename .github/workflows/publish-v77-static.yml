@@ -1,0 +1,39 @@
+name: Publish static v77 preview
+
+on:
+  push:
+    paths:
+      - '.github/workflows/publish-v77-static.yml'
+      - '.github/v77_static.patch'
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Build complete static v77
+        shell: bash
+        run: |
+          cp preview-v75.html preview-v77.html
+          patch preview-v77.html < .github/v77_static.patch
+          python3 - <<'PY' > /tmp/v77-check.js
+          import re
+          s=open('preview-v77.html',encoding='utf-8').read()
+          print('\n'.join(re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,re.S)))
+          PY
+          node --check /tmp/v77-check.js
+          grep -q 'Mobile v77 Preview' preview-v77.html
+          grep -q 'windEffectLabel' preview-v77.html
+          grep -q 'Wettest' preview-v77.html
+          ! grep -q 'Strongest gusts' preview-v77.html
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add preview-v77.html
+          git commit -m 'Publish complete static v77 preview'
+          git push origin main
