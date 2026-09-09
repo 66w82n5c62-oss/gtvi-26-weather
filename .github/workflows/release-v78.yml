@@ -1,0 +1,51 @@
+name: Release v78 live
+
+on:
+  push:
+    paths:
+      - '.github/workflows/release-v78.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Promote v78 preview to live
+        shell: bash
+        run: |
+          cp preview-v78.html index.html
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p=Path('index.html')
+          s=p.read_text(encoding='utf-8')
+          s=s.replace('<title>GTVI 26 Weather App · Mobile v78 Preview</title>','<title>GTVI 26 Weather App · Mobile v78</title>',1)
+          if '<title>GTVI 26 Weather App · Mobile v78</title>' not in s:
+              raise SystemExit('live title replacement failed')
+          bad=re.findall(r'☀️|☀|🌤️|⛅|🌞|🌥️|🌦️',s)
+          if bad:
+              raise SystemExit('ordinary sun-bearing glyph found: '+repr(bad[:5]))
+          p.write_text(s,encoding='utf-8')
+          PY
+          python3 - <<'PY' > /tmp/v78-live-check.js
+          import re
+          s=open('index.html',encoding='utf-8').read()
+          print('\n'.join(re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,re.S)))
+          PY
+          node --check /tmp/v78-live-check.js
+          grep -q 'Mobile v78</title>' index.html
+          grep -q 'windEffectLabel' index.html
+          grep -q 'sunshine_duration' index.html
+          grep -q 'Wettest' index.html
+          ! grep -q 'Strongest gusts' index.html
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html
+          git commit -m 'Release mobile v78 live'
+          git push origin main
