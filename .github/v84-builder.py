@@ -7,7 +7,6 @@ s = src.read_text(encoding='utf-8')
 
 s = s.replace('<title>GTVI 26 Weather App · Mobile v80</title>', '<title>GTVI 26 Weather App · Mobile v84 Preview</title>', 1)
 
-# Fix iOS clipping: replace the Wheels Rolling native time control by id, preserving the HH:MM value contract.
 m = re.search(r'<input[^>]*id="startTime"[^>]*>', s)
 if not m:
     raise SystemExit('startTime input not found')
@@ -19,15 +18,13 @@ klass = classes.group(1) if classes else 'mobileTimeInput'
 new_tag = f'<input id="startTime" class="{klass}" type="text" inputmode="numeric" value="{default}" aria-label="Wheels rolling time">'
 s = s.replace(tag, new_tag, 1)
 
-# Add cloud cover to deterministic requests so Sunniest uses a real forecast field.
 old = 'temperature_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m'
 if old not in s:
     raise SystemExit('hourly field list not found')
 s = s.replace(old, old + ',cloud_cover', 1)
 
-# Carry cloud cover through row() and consensusRow().
-old_row = 'gust:num(h.wind_gusts_10m?.[i])??0};'
-new_row = 'gust:num(h.wind_gusts_10m?.[i])??0,cloud:num(h.cloud_cover?.[i])};'
+old_row = 'gust:num(h.wind_gusts_10m?.[i])??0,wdir:num(h.wind_direction_10m?.[i])};'
+new_row = 'gust:num(h.wind_gusts_10m?.[i])??0,wdir:num(h.wind_direction_10m?.[i]),cloud:num(h.cloud_cover?.[i])};'
 if s.count(old_row) < 2:
     raise SystemExit('row/consensus row anchors not found')
 s = s.replace(old_row, new_row, 2)
