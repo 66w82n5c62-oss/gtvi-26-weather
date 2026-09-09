@@ -24,12 +24,15 @@ jobs:
           PY
           node --check /tmp/v87-check.js
           grep -q 'Mobile v87 Preview' preview-v87.html
-          grep -q 'font-size:11px' preview-v87.html
+          grep -q 'font-size:10px' preview-v87.html
+          grep -q 'consensusPrecipCondition' preview-v87.html
+          grep -q 'Heavy showers' preview-v87.html
+          grep -q 'Moderate rain' preview-v87.html
           ! grep -Eq '☀️|☀|🌤️|⛅|🌞|🌥️|🌦️' preview-v87.html
       - name: Publish preview
         run: |
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add preview-v87.html
-          git commit -m 'Publish v87 smaller wheels-rolling time preview'
+          git commit -m 'Publish v87 rain intensity and time-field preview'
           git push origin main
