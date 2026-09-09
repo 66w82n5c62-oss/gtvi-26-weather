@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#081522">
-<title>GTVI 26 Weather App · Mobile v70</title>
+<title>GTVI 26 Weather App · Mobile v78</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
 :root {
   --bg:#081522; --card:#102237; --card2:#132a42; --line:#28445f;
-  --text:#f4f8fc; --muted:#a6b9ca; --blue:#58b7f4; --good:#87d7c8;
+  --text:#f4f8fc; --muted:#bac9d6; --blue:#58b7f4; --good:#87d7c8;
   --amber:#f1cc74; --red:#ff9a7d;
 }
 *{box-sizing:border-box}
@@ -37,7 +37,7 @@ header{display:flex;justify-content:space-between;gap:10px;align-items:center;ma
   align-items:center;
   justify-content:flex-end;
   font-size:11px;
-  color:#9fb4c6;
+  color:#b9c8d3;
   white-space:nowrap;
 }
 .headerSun b{
@@ -79,7 +79,7 @@ header{display:flex;justify-content:space-between;gap:10px;align-items:center;ma
 }
 .sunMetric{
   font-size:11px;
-  color:#9fb4c6;
+  color:#b9c8d3;
   white-space:nowrap;
 }
 .sunMetric b{
@@ -114,7 +114,7 @@ header{display:flex;justify-content:space-between;gap:10px;align-items:center;ma
   line-height:1.15;
   text-transform:uppercase;
   letter-spacing:.06em;
-  color:#8fa8bc;
+  color:#aabcca;
   font-weight:800;
 }
 .rideFactNote{
@@ -123,7 +123,7 @@ header{display:flex;justify-content:space-between;gap:10px;align-items:center;ma
   text-align:center;
   font-size:8.5px;
   line-height:1.15;
-  color:#7891a6;
+  color:#94a9ba;
 }
 
 .rideFactControl{
@@ -196,7 +196,7 @@ header{display:flex;justify-content:space-between;gap:10px;align-items:center;ma
   }
 }
 
-.eyebrow{font-size:12px;color:#a9c4dc;text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+.eyebrow{font-size:12px;color:#bfd4e5;text-transform:uppercase;letter-spacing:.08em;font-weight:700}
 @media(max-width:620px){
  .heroTop{flex-direction:column;gap:10px}
  .heroRight{width:100%;align-items:flex-start}
@@ -212,18 +212,18 @@ h1{font-size:27px;margin:4px 0 3px;line-height:1.1;letter-spacing:-.035em}
 .explain{font-size:13px;line-height:1.45;color:#c1d1df}
 .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:11px 0}
 .metric{background:var(--card);border:1px solid #213d58;border-radius:14px;padding:11px}
-.metric .label{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:#8fa7bb}
+.metric .label{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:#aabcca}
 .metric .value{font-weight:820;font-size:19px;margin-top:3px}
 .metricSub{font-size:10px;color:var(--muted);margin-top:2px;line-height:1.35}
 .riskBox{margin-top:11px;background:#0d1f31;border:1px solid #294660;border-radius:13px;padding:11px 12px}
 .riskHead{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:8px}
 .riskTitle{font-size:12px;font-weight:850;text-transform:uppercase;letter-spacing:.06em;color:#bdd1e2}
-.riskSource{font-size:10px;color:#7f98ad}
+.riskSource{font-size:10px;color:#9bb0c0}
 .riskRows{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .riskRow{background:#10263b;border-radius:10px;padding:9px}
-.riskRowTitle{font-size:10px;color:#8ca5ba;text-transform:uppercase;letter-spacing:.06em}
+.riskRowTitle{font-size:10px;color:#a8bac8;text-transform:uppercase;letter-spacing:.06em}
 .riskMain{font-size:14px;font-weight:850;margin-top:3px}
-.riskDetail{font-size:10px;color:#a8bdce;margin-top:3px;line-height:1.45}
+.riskDetail{font-size:10px;color:#bdcbd6;margin-top:3px;line-height:1.45}
 .riskChips{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px}
 .riskChip{font-size:10px;border:1px solid #35536d;border-radius:999px;padding:3px 6px;color:#c6d6e3}
 @media(max-width:700px){.riskRows{grid-template-columns:1fr}}
@@ -279,7 +279,7 @@ h1{font-size:27px;margin:4px 0 3px;line-height:1.1;letter-spacing:-.035em}
   filter:invert(1);
   opacity:.9;
 }
-.timeHint{font-size:10px;color:#839aaf}
+.timeHint{font-size:10px;color:#9dafbf}
 .routeControl{display:flex;flex-direction:column;gap:5px}
 .routeControl select{height:44px;background:#0c1c2c;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:0 10px;font-weight:700}
 .speedControl{display:flex;flex-direction:column;gap:5px}
@@ -293,13 +293,13 @@ h1{font-size:27px;margin:4px 0 3px;line-height:1.1;letter-spacing:-.035em}
 .breakName{font-size:13px;font-weight:800}
 .breakSub{font-size:10px;color:var(--muted);margin-top:2px}
 .modeToggle{display:flex;gap:4px;margin-top:6px}
-.modeBtn{border:1px solid #31506b;background:#0d2134;color:#a9bfd2;border-radius:8px;padding:5px 7px;font-size:10px;font-weight:750;cursor:pointer}
+.modeBtn{border:1px solid #31506b;background:#0d2134;color:#bfced9;border-radius:8px;padding:5px 7px;font-size:10px;font-weight:750;cursor:pointer}
 .modeBtn.active{background:#1c496f;color:#fff;border-color:var(--blue)}
-.miniLabel{font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:#8199ae;margin-bottom:4px}
+.miniLabel{font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:#9eb1c0;margin-bottom:4px}
 .miniStepper{display:grid;grid-template-columns:36px 1fr 36px;gap:5px;align-items:center}
 .miniBtn{height:36px;border:1px solid #315574;background:#102a42;color:var(--text);border-radius:9px;font-size:18px;font-weight:850;cursor:pointer}
 .miniValue{height:36px;display:flex;align-items:center;justify-content:center;background:#0c1c2c;border:1px solid #2d4a64;border-radius:9px;font-size:13px;font-weight:800}
-.breakSummary{font-size:11px;color:#93aac0;margin-top:8px;line-height:1.45}
+.breakSummary{font-size:11px;color:#aec0cd;margin-top:8px;line-height:1.45}
 @media(max-width:620px){.breakRow{grid-template-columns:1fr 1fr;gap:8px}.breakName{grid-column:1/-1}.breakRow .distCtl,.breakRow .durCtl{min-width:0}}
 @media(max-width:420px){.controls{align-items:stretch}.routeControl{min-width:110px}.timeStepper{grid-template-columns:44px 112px 44px}.timeInput{width:112px;min-width:112px}.speedStepper{grid-template-columns:44px 72px 44px}.miniStepper{grid-template-columns:34px 1fr 34px}}
 .sectionTitle{font-size:15px;font-weight:800;margin:17px 2px 9px}
@@ -314,14 +314,15 @@ h1{font-size:27px;margin:4px 0 3px;line-height:1.1;letter-spacing:-.035em}
 .rainInfo,.windInfo{font-size:11px;line-height:1.35}
 .rainInfo{text-align:center}
 .windInfo{text-align:right}
-.infoLabel{display:block;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:#8199ae;margin-bottom:2px}
+.infoLabel{display:block;font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:#9eb1c0;margin-bottom:2px}
 .infoMain{font-size:12px;font-weight:800;color:#eef6ff}
 .infoSub{font-size:10px;color:#9fb3c5;margin-top:1px}
 .rainWet{color:#9ed9ff} .risk{color:var(--amber);font-weight:750} .danger{color:#ffb19c;font-weight:800}
 details{margin-top:8px}
 summary{cursor:pointer;color:#a8c9e1;font-size:12px;user-select:none}
 .modelGrid{margin-top:8px;display:grid;gap:5px}
-.modelRow{display:grid;grid-template-columns:64px 1fr 1fr 1fr;gap:7px;font-size:11px;background:#0c1c2c;padding:7px;border-radius:8px;color:#c3d1dc}
+.modelRow{display:grid;grid-template-columns:58px 42px minmax(118px,1.45fr) minmax(104px,1fr);gap:5px;font-size:11px;background:#0c1c2c;padding:7px;border-radius:8px;color:#c3d1dc}
+.modelRow > span:nth-child(3){white-space:nowrap}
 .modelRow b{color:white}
 .routeBox{background:var(--card);border:1px solid #213d58;border-radius:14px;margin-top:10px;overflow:hidden}
 .routeBox>summary{padding:13px 14px;font-size:13px;font-weight:750;color:#d5e3ef}
@@ -391,7 +392,7 @@ header{align-items:center;margin-bottom:8px}
   margin:0;
   font-size:8.5px;
   line-height:1.25;
-  color:#7891a6;
+  color:#94a9ba;
   text-align:center;
 }
 .weatherAlongBox{
@@ -414,7 +415,7 @@ header{align-items:center;margin-bottom:8px}
 .mobileWayTitle .wayTimingInline{
   font-weight:400;
   font-size:9.5px;
-  color:#7891a6;
+  color:#94a9ba;
 }
 .mobileSunCompact{
   display:flex;
@@ -423,12 +424,12 @@ header{align-items:center;margin-bottom:8px}
   margin-top:4px;
   font-size:9px;
   line-height:1;
-  color:#7891a6;
+  color:#94a9ba;
   white-space:nowrap;
 }
 .mobileSunCompact b{
   font-size:9px;
-  color:#9fb4c6;
+  color:#b9c8d3;
   font-weight:750;
 }
 
@@ -460,7 +461,7 @@ header{align-items:center;margin-bottom:8px}
   font-size:9px;
   text-transform:uppercase;
   letter-spacing:.06em;
-  color:#8fa8bc;
+  color:#aabcca;
   font-weight:800;
   margin-bottom:5px;
 }
@@ -491,11 +492,11 @@ header{align-items:center;margin-bottom:8px}
   border:1px solid #2d4a64;
   border-radius:8px;
   padding:0 4px;
-  font-size:14px;
+  font-size:12px;
   font-weight:850;
   font-variant-numeric:tabular-nums;
 }
-.komootNote{font-size:9px;color:#7891a6;text-align:center;margin:6px 0 8px}
+.komootNote{font-size:9px;color:#94a9ba;text-align:center;margin:6px 0 8px}
 
 .mobileStats{
   display:grid;
@@ -727,7 +728,7 @@ header{align-items:center;margin-bottom:8px}
   max-width:48px;
   font-size:8px;
   line-height:1.05;
-  color:#8fa8bc;
+  color:#aabcca;
   font-weight:700;
   text-align:center;
 }
@@ -746,7 +747,7 @@ header{align-items:center;margin-bottom:8px}
 }
 .pointMetricLabel{
   font-size:8px;
-  color:#7891a6;
+  color:#94a9ba;
   font-weight:700;
   text-transform:uppercase;
   letter-spacing:.03em;
@@ -761,7 +762,7 @@ header{align-items:center;margin-bottom:8px}
 .pointGust{
   margin-top:1px;
   font-size:8px;
-  color:#7891a6;
+  color:#94a9ba;
   font-weight:700;
   text-align:right;
   white-space:nowrap;
@@ -877,7 +878,7 @@ details.modelDetail summary{font-size:9px}
   padding:0 8px 8px;
   font-size:9px;
   line-height:1.45;
-  color:#8fa8bc;
+  color:#aabcca;
 }
 .forecastSources div+div{margin-top:2px}
 .forecastSources span{
@@ -969,7 +970,7 @@ details.modelDetail summary{font-size:9px}
 .aboutForecastBody b{color:#dbe9f4}
 .aboutForecastFoot{
   margin-bottom:0!important;
-  color:#7891a6;
+  color:#94a9ba;
   font-size:9.5px;
 }
 
@@ -1046,11 +1047,42 @@ details[open] > summary::before{
   height:18px;
 }
 
+
+.mobileTimeInput{
+  padding:0 2px;
+  line-height:34px;
+}
+.mobileTimeInput::-webkit-datetime-edit,
+.mobileTimeInput::-webkit-datetime-edit-fields-wrapper,
+.mobileTimeInput::-webkit-datetime-edit-hour-field,
+.mobileTimeInput::-webkit-datetime-edit-minute-field,
+.mobileTimeInput::-webkit-datetime-edit-text{
+  font-size:12px;
+  line-height:34px;
+  padding:0;
+}
+
+
+.alongHighlights{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:0 0 7px}
+.alongHighlight{min-width:0;padding:7px 8px;border:1px solid #284a65;border-radius:9px;background:#0c2236;color:#dce9f3;font-size:9px;line-height:1.25}
+.alongHighlight b{display:block;margin-bottom:2px;font-size:9px;color:#8fcdf2;text-transform:uppercase;letter-spacing:.04em}
+.alongStatusRow{display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:16px;margin:0 1px 8px}
+.forecastChange,.forecastFreshness{font-size:8.5px;line-height:1.2;color:#83a2b8}
+.forecastChange{font-weight:700}.forecastFreshness{text-align:right;white-space:nowrap}
+.forecastFreshness.offline{color:#ffd089;font-weight:800}
+.stop.currentRoutePoint{border-color:#6bc7f5;box-shadow:0 0 0 1px rgba(107,199,245,.2);background:#102b40}
+.routePointBadge{display:inline-block;margin-left:6px;padding:2px 5px;border-radius:999px;background:#58b7f4;color:#06101b;font-size:7px;font-weight:900;letter-spacing:.05em;vertical-align:1px}
+@media(max-width:360px){.alongHighlights{grid-template-columns:1fr}.alongStatusRow{align-items:flex-start;flex-direction:column;gap:3px}.forecastFreshness{text-align:left}}
+
+
+/* v76: slightly brighter secondary text for improved mobile readability */
+.date,.metricSub,.timeHint,.breakSub,.breakSummary,.consensusHint,.mobileWayTitle .wayTimingInline,.mobileSunCompact,.mobilePlanNote,.stopMeta,.pointMetricLabel,.pointGust,.aboutForecastBody,.aboutForecastFoot{filter:brightness(1.08);}
+
 </style>
 </head>
 <body>
 <div class="app">
-<div class="appTitle">GTVI 26 Weather App <span style="font-size:11px;color:#7891a6;font-weight:700">Mobile</span></div>
+<div class="appTitle">GTVI 26 Weather App <span style="font-size:11px;color:#94a9ba;font-weight:700">Mobile</span></div>
 <header>
   <div class="brand">Vienna → Pula <small>Live route forecasts · 12–18 Sep 2026</small></div>
   <button id="refresh" class="refresh">↻ Refresh</button>
@@ -1230,6 +1262,12 @@ details[open] > summary::before{
 <section class="weatherAlongBox">
   <div class="mobileWayTitle"><strong>WEATHER ALONG THE WAY</strong> <span class="wayTimingInline">is matched to your expected position on the route based on the start time, riding speed and planned stops entered in the RIDE PLAN above.</span></div>
 
+  <div id="alongHighlights" class="alongHighlights" aria-live="polite"></div>
+  <div class="alongStatusRow">
+    <div id="forecastChange" class="forecastChange"></div>
+    <div id="forecastFreshness" class="forecastFreshness"></div>
+  </div>
+
   <div id="timeline" class="timeline"><div class="stop">Loading…</div></div>
 </section>
 
@@ -1247,8 +1285,9 @@ details[open] > summary::before{
     <p>This app is designed for the Vienna–Pula ride and combines several weather forecasts with the planned route and timing.</p>
     <ul>
       <li><b>Forecast consensus</b> shows how closely the main forecasts agree. It is a guide to confidence, not an official probability.</li>
-      <li><b>Forecast spread</b> shows the broader spread of likely conditions, using ensemble forecasting to highlight uncertainty.</li>
+      <li><b>Forecast spread</b> shows the broader spread of likely conditions, using ensemble forecasting to highlight uncertainty, including expected sunshine during the planned ride.</li>
       <li><b>Weather along the way</b> is matched to your expected position on the route based on the start time, riding speed and planned stops entered in the RIDE PLAN above.</li>
+      <li><b>Wind effect</b> compares forecast wind direction with the actual route bearing at each point, showing tailwind, cross-tailwind, crosswind, cross-headwind or headwind.</li>
       <li>Changing the <b>Ride plan</b> changes the point-by-point weather timing, but does not change the overall daily forecast consensus.</li>
       <li>Forecasts become more reliable as the ride day approaches, so refresh the app regularly and check again before setting off.</li>
     </ul>
@@ -1530,19 +1569,7 @@ function anyDeterministicPending(s){
  return [...MODELS,BEST].some(src=>isResultPending(s,src.id));
 }
 async function fetchAllProgressive(s,force=false,onUpdate=null){
- const key=s.key;
- if(force){delete cache[key];delete pending[key]}
- getStageBucket(cache,key);
- getStageBucket(pending,key);
- if(onUpdate)onUpdate(fetchedResults(s),null);
- const jobs=[...MODELS,BEST].map(src=>
-   fetchOne(src,s,false).then(result=>{
-     if(onUpdate)onUpdate(fetchedResults(s),result);
-     return result;
-   })
- );
- await Promise.all(jobs);
- return fetchedResults(s);
+ const key=s.key;if(force){delete cache[key];delete pending[key]}getStageBucket(cache,key);getStageBucket(pending,key);if(onUpdate)onUpdate(fetchedResults(s),null);const coreJobs=MODELS.map(src=>fetchOne(src,s,false).then(result=>{if(onUpdate)onUpdate(fetchedResults(s),result);return result}));const bestJob=new Promise(resolve=>setTimeout(resolve,300)).then(()=>fetchOne(BEST,s,false)).then(result=>{if(onUpdate)onUpdate(fetchedResults(s),result);return result});await Promise.all([...coreJobs,bestJob]);return fetchedResults(s);
 }
 function usableEnsemblePayload(data){
  const d=arr(data);
@@ -1580,7 +1607,7 @@ async function fetchEnsemble(s,force=false){
  ensemblePending[key]=(async()=>{
    let lastError=null;
    for(const model of models){
-     const url=`https://ensemble-api.open-meteo.com/v1/ensemble?latitude=${lat}&longitude=${lon}&elevation=${elevation}&hourly=temperature_2m,precipitation,wind_speed_10m,wind_gusts_10m&models=${model}&timezone=Europe%2FVienna&start_date=${s.date}&end_date=${end}`;
+     const url=`https://ensemble-api.open-meteo.com/v1/ensemble?latitude=${lat}&longitude=${lon}&elevation=${elevation}&hourly=temperature_2m,precipitation,wind_speed_10m,wind_gusts_10m,sunshine_duration&models=${model}&timezone=Europe%2FVienna&start_date=${s.date}&end_date=${end}`;
      try{
        const r=await fetch(url);
        if(!r.ok){
@@ -1647,6 +1674,17 @@ function percentile(vals,q){
 function ensembleKeys(hourly,base){
  return Object.keys(hourly||{}).filter(k=>k===base||k.startsWith(base+"_member"));
 }
+function pointEnsembleRainProbability(data,s,p,idx){
+ if(!Array.isArray(data)||!data.length)return null;
+ const model=String(data._ensembleModel||"");
+ if(!model.startsWith("ecmwf_"))return null;
+ const h=(data[idx]||data[0])?.hourly;if(!h)return null;
+ const ti=nearestISO(h.time,arrivalInfo(p.ride_h,s,p.km).iso);if(ti<0)return null;
+ const vals=ensembleKeys(h,"precipitation").map(k=>num(h[k]?.[ti])).filter(Number.isFinite);
+ if(vals.length<10)return null;
+ return Math.round(100*vals.filter(v=>v>=0.2).length/vals.length);
+}
+
 function ensembleStageRisk(data,s){
  if(!Array.isArray(data)||!data.length)return null;
  const members={};
@@ -1661,12 +1699,13 @@ function ensembleStageRisk(data,s){
        const k=base+suffix;
        return Number.isFinite(h[k]?.[ti])?h[k][ti]:null;
      };
-     const r=members[id]||(members[id]={gust:[],wind:[],precip:[],temp:[]});
-     const gv=get("wind_gusts_10m"),wv=get("wind_speed_10m"),pv=get("precipitation"),tv=get("temperature_2m");
+     const r=members[id]||(members[id]={gust:[],wind:[],precip:[],temp:[],sun:[]});
+     const gv=get("wind_gusts_10m"),wv=get("wind_speed_10m"),pv=get("precipitation"),tv=get("temperature_2m"),sv=get("sunshine_duration");
      if(gv!==null)r.gust.push(gv);
      if(wv!==null)r.wind.push(wv);
      if(pv!==null)r.precip.push(pv);
      if(tv!==null)r.temp.push(tv);
+     if(sv!==null)r.sun.push(sv);
    });
  });
 
@@ -1678,6 +1717,10 @@ function ensembleStageRisk(data,s){
  const minT=rows.map(r=>Math.min(...r.temp));
  const maxT=rows.map(r=>Math.max(...r.temp));
  const maxP=rows.map(r=>r.precip.length?Math.max(...r.precip):0);
+ const startISO=arrivalInfo(s.samples[0].ride_h,s,s.samples[0].km).iso;
+ const endISO=arrivalInfo(s.samples[s.samples.length-1].ride_h,s,s.samples[s.samples.length-1].km).iso;
+ const elapsedHours=Math.max(0,(new Date(endISO)-new Date(startISO))/3600000);
+ const sunHours=rows.map(r=>r.sun.length?(r.sun.reduce((a,c)=>a+c,0)/(r.sun.length*3600))*elapsedHours:null).filter(Number.isFinite);
  const exceed=t=>Math.round(100*maxG.filter(x=>x>=t).length/maxG.length);
 
  return {
@@ -1702,7 +1745,11 @@ function ensembleStageRisk(data,s){
    rainAny:Math.round(100*maxP.filter(x=>x>=0.2).length/maxP.length),
    rainModerate:Math.round(100*maxP.filter(x=>x>=1).length/maxP.length),
    rainHeavy:Math.round(100*maxP.filter(x=>x>=2).length/maxP.length),
-   precipP90:percentile(maxP,.9)
+   precipP90:percentile(maxP,.9),
+
+   sunExpected:sunHours.length?percentile(sunHours,.5):null,
+   sunP10:sunHours.length?percentile(sunHours,.1):null,
+   sunP90:sunHours.length?percentile(sunHours,.9):null
  };
 }
 function rainAmountIcon(level="none"){
@@ -1768,6 +1815,12 @@ function renderEnsembleRisk(risk,deterministicMax=null){
      <div class="riskRowTitle">Rain</div>
      <div class="riskMain">${risk.rainAny}% chance</div>
      <div class="riskDetail">Heavier rain risk ${risk.rainHeavy}%${risk.precipP90>0.1?` · high-end peak ~${risk.precipP90.toFixed(1)} mm/h`:""}</div>
+   </div>
+
+   <div class="riskRow">
+     <div class="riskRowTitle">Sunshine</div>
+     <div class="riskMain">${Number.isFinite(risk.sunExpected)?`~${risk.sunExpected.toFixed(1)} h`:"Unavailable"}</div>
+     <div class="riskDetail">${Number.isFinite(risk.sunP10)&&Number.isFinite(risk.sunP90)?`Likely range ${risk.sunP10.toFixed(1)}–${risk.sunP90.toFixed(1)} h during the planned ride`:"Ensemble sunshine duration unavailable"}</div>
    </div>`;
 
  document.getElementById("mWind").textContent=w+" km/h";
@@ -1843,7 +1896,8 @@ function baseUI(s){
  document.getElementById("ensembleRisk").innerHTML=`
  <div class="riskRow"><div class="riskRowTitle">Wind</div><div class="riskMain">Loading…</div></div>
  <div class="riskRow"><div class="riskRowTitle">Temperature</div><div class="riskMain">Loading…</div></div>
- <div class="riskRow"><div class="riskRowTitle">Rain</div><div class="riskMain">Loading…</div></div>`;
+ <div class="riskRow"><div class="riskRowTitle">Rain</div><div class="riskMain">Loading…</div></div>
+ <div class="riskRow"><div class="riskRowTitle">Sunshine</div><div class="riskMain">Loading…</div></div>`;
  document.getElementById("timeline").innerHTML='<div class="stop">Fetching live route forecast…</div>';
  updateBreakUI(s);
  resetSunTimes(s);
@@ -1857,57 +1911,38 @@ function buildBundlesFromResults(results,s,useConsensus=false){
    return {p,forecasts,best,conf:confidence(forecasts,s.date)};
  });
 }
+
+const FORECAST_STORE_PREFIX="gtvi26_forecast_v72_";
+let lastChangeTextByStage={};
+function forecastStoreKey(s){return FORECAST_STORE_PREFIX+s.key}
+function safeStoreGet(s){try{const raw=localStorage.getItem(forecastStoreKey(s));return raw?JSON.parse(raw):null}catch(e){return null}}
+function safeStoreSet(s,data){try{localStorage.setItem(forecastStoreKey(s),JSON.stringify(data));return true}catch(e){return false}}
+function localViennaNowParts(){try{const parts=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Vienna",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).formatToParts(new Date());const o={};parts.forEach(p=>{if(p.type!=="literal")o[p.type]=p.value});return {date:`${o.year}-${o.month}-${o.day}`,minutes:Number(o.hour)*60+Number(o.minute)}}catch(e){const d=new Date();return {date:d.toISOString().slice(0,10),minutes:d.getHours()*60+d.getMinutes()}}}
+function pointArrivalMinutes(p,s){const a=arrivalInfo(p.ride_h,s,p.km);return {date:a.date,minutes:parseClock(a.time),time:a.time}}
+function currentRoutePointIndex(bundles,s){const now=localViennaNowParts();if(now.date!==s.date)return -1;for(let i=0;i<bundles.length;i++){const a=pointArrivalMinutes(bundles[i].p,s);if(a.date===now.date&&a.minutes>=now.minutes)return i}return -1}
+function bundleSummaryPoint(b,s){const rs=b.forecasts.filter(Boolean),disp=rs[0]||b.best;if(!disp)return null;const rains=rs.map(x=>x.rain).filter(Number.isFinite),precip=rs.map(x=>x.precip).filter(Number.isFinite),gusts=rs.map(x=>x.gust).filter(Number.isFinite),temps=rs.map(x=>x.temp).filter(Number.isFinite);const rainProb=Number.isFinite(b.best?.rain)?b.best.rain:(rains.length?Math.max(...rains):null);const meanPrecip=precip.length?precip.reduce((a,c)=>a+c,0)/precip.length:(Number.isFinite(disp.precip)?disp.precip:0);const gust=gusts.length?gusts.reduce((a,c)=>a+c,0)/gusts.length:(Number.isFinite(disp.gust)?disp.gust:0);const temp=temps.length?temps.reduce((a,c)=>a+c,0)/temps.length:(Number.isFinite(disp.temp)?disp.temp:null);const a=pointArrivalMinutes(b.p,s);return {km:b.p.km,time:a.time,rainProb,precip:meanPrecip,gust,temp}}
+function forecastSnapshot(bundles,s){const pts=bundles.map(b=>bundleSummaryPoint(b,s)).filter(Boolean);if(!pts.length)return null;const rainMax=Math.max(...pts.map(p=>Number.isFinite(p.rainProb)?p.rainProb:0)),precipMax=Math.max(...pts.map(p=>Number.isFinite(p.precip)?p.precip:0)),gustMax=Math.max(...pts.map(p=>Number.isFinite(p.gust)?p.gust:0)),temps=pts.map(p=>p.temp).filter(Number.isFinite);return {ts:Date.now(),rainMax:Math.round(rainMax),precipMax:Number(precipMax.toFixed(2)),gustMax:Math.round(gustMax),tempMin:temps.length?Math.round(Math.min(...temps)):null,tempMax:temps.length?Math.round(Math.max(...temps)):null}}
+function renderWorstHighlights(bundles,s){const el=document.getElementById("alongHighlights");if(!el)return;const pts=bundles.map(b=>bundleSummaryPoint(b,s)).filter(Boolean);if(!pts.length){el.innerHTML="";return}const wettest=pts.reduce((a,p)=>{const score=(Number.isFinite(p.rainProb)?p.rainProb:0)+(Number.isFinite(p.precip)?p.precip*20:0);return !a||score>a.score?{...p,score}:a},null);const gustiest=pts.reduce((a,p)=>!a||p.gust>a.gust?p:a,null);const wetDetail=(Number.isFinite(wettest.rainProb)&&wettest.rainProb>0)?`${Math.round(wettest.rainProb)}% rain`:(wettest.precip>=0.1?`${wettest.precip.toFixed(1)} mm/h`:"little rain signal");el.innerHTML=`<div class="alongHighlight"><b>Wettest</b>${wettest.time} · around ${Math.round(wettest.km)} km · ${wetDetail}</div>`}
+function changeText(current,previous){if(!current||!previous)return "Baseline saved for next refresh";const bits=[],rainDelta=current.rainMax-previous.rainMax,gustDelta=current.gustMax-previous.gustMax,tempMid=((current.tempMin??0)+(current.tempMax??0))/2,prevMid=((previous.tempMin??0)+(previous.tempMax??0))/2,tempDelta=tempMid-prevMid;if(Math.abs(rainDelta)>=10)bits.push(`Rain risk ${rainDelta>0?"↑":"↓"}`);else bits.push("Rain risk unchanged");if(Math.abs(gustDelta)>=5)bits.push(`Wind ${gustDelta>0?"↑":"↓"}`);else bits.push("Wind unchanged");if(Math.abs(tempDelta)>=2)bits.push(`Temperature ${tempDelta>0?"↑":"↓"}`);return bits.join(" · ")}
+function formatUpdatedTime(ts){try{return new Intl.DateTimeFormat("en-GB",{timeZone:"Europe/Vienna",hour:"2-digit",minute:"2-digit",hour12:false}).format(new Date(ts))}catch(e){return new Date(ts).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}}
+function renderFreshness(ts,offline=false){const el=document.getElementById("forecastFreshness");if(!el)return;el.classList.toggle("offline",offline);el.textContent=ts?(offline?`Offline · Last updated ${formatUpdatedTime(ts)}`:`Updated ${formatUpdatedTime(ts)}`):""}
+function captureOfflineUI(s,snapshot){return {ts:snapshot?.ts||Date.now(),snapshot,outlook:document.getElementById("outlook").textContent,explain:document.getElementById("explain").textContent,agreementText:document.getElementById("agreement").textContent,agreementClass:document.getElementById("agreement").className,mTemp:document.getElementById("mTemp").textContent,mSkyIcon:document.getElementById("mSkyIcon").innerHTML,mSkySub:document.getElementById("mSkySub").textContent,mRain:document.getElementById("mRain").textContent,mRainSub:document.getElementById("mRainSub").textContent,mWind:document.getElementById("mWind").textContent,mWindSub:document.getElementById("mWindSub").textContent,ensembleRisk:document.getElementById("ensembleRisk").innerHTML,highlights:document.getElementById("alongHighlights").innerHTML,change:document.getElementById("forecastChange").textContent,timeline:document.getElementById("timeline").innerHTML}}
+function restoreOfflineUI(s,cached){if(!cached)return false;document.getElementById("outlook").textContent=cached.outlook||"Last saved forecast";document.getElementById("explain").textContent=cached.explain||"Showing the most recent saved forecast.";const ag=document.getElementById("agreement");ag.textContent=cached.agreementText||"Saved forecast";ag.className=cached.agreementClass||"agree medium";document.getElementById("mTemp").textContent=cached.mTemp||"—";document.getElementById("mSkyIcon").innerHTML=cached.mSkyIcon||"";document.getElementById("mSkySub").textContent=cached.mSkySub||"";document.getElementById("mRain").textContent=cached.mRain||"—";document.getElementById("mRainSub").textContent=cached.mRainSub||"";document.getElementById("mWind").textContent=cached.mWind||"—";document.getElementById("mWindSub").textContent=cached.mWindSub||"";if(cached.ensembleRisk)document.getElementById("ensembleRisk").innerHTML=cached.ensembleRisk;document.getElementById("alongHighlights").innerHTML=cached.highlights||"";document.getElementById("forecastChange").textContent=cached.change||"Showing last saved forecast";document.getElementById("timeline").innerHTML=cached.timeline||"";renderFreshness(cached.ts,true);return true}
+
+function bearingDeg(a,b){const r=x=>x*Math.PI/180,d=x=>x*180/Math.PI,p1=r(a.lat),p2=r(b.lat),dl=r(b.lon-a.lon),y=Math.sin(dl)*Math.cos(p2),x=Math.cos(p1)*Math.sin(p2)-Math.sin(p1)*Math.cos(p2)*Math.cos(dl);return(d(Math.atan2(y,x))+360)%360;}
+function routeBearingAtKm(s,km){const line=s.line||[];if(line.length<2)return null;let i=line.findIndex(p=>p.km>=km);if(i<=0)i=1;if(i>=line.length)i=line.length-1;return bearingDeg(line[i-1],line[i]);}
+function circularMeanDeg(v){v=v.filter(Number.isFinite);if(!v.length)return null;const sy=v.reduce((a,d)=>a+Math.sin(d*Math.PI/180),0),sx=v.reduce((a,d)=>a+Math.cos(d*Math.PI/180),0);return(Math.atan2(sy,sx)*180/Math.PI+360)%360;}
+function windEffectLabel(rb,wf,ws){if(!Number.isFinite(rb)||!Number.isFinite(wf)||!Number.isFinite(ws))return null;if(ws<4)return{label:"Light / little effect"};const wt=(wf+180)%360,d=((wt-rb+540)%360)-180,f=Math.cos(d*Math.PI/180);let label="Crosswind";if(f>=.70)label="Tailwind";else if(f>=.20)label="Cross-tailwind";else if(f<=-.70)label="Headwind";else if(f<=-.20)label="Cross-headwind";return{label};}
 function renderTimelineFromBundles(bundles,s){
- const stillLoading=anyDeterministicPending(s);
- document.getElementById("timeline").innerHTML=bundles.map(b=>{
-    const rs=b.forecasts.filter(Boolean), disp=rs[0]||b.best;
-    if(!disp){
-      const status=stillLoading?"Loading forecast…":"Forecast not yet in range";
-      return `<div class="stop"><div class="stopPlace">${b.p.label==="Start"?s.start:b.p.label==="Finish"?s.finish:b.p.label}</div><div class="stopMeta">${b.p.km} km · ${b.p.ele} m · ~${rideClock(b.p.ride_h,s,b.p.km)}</div><div class="risk">${status}</div></div>`;
-    }
-    const temps=rs.map(x=>x.temp).filter(Number.isFinite), meanT=temps.length?Math.round(temps.reduce((a,c)=>a+c,0)/temps.length):Math.round(disp.temp);
-    const wetN=rs.filter(wet).length, code=rs.some(x=>x.code>=95)?95:wetN?80:disp.code;
-    const prob=b.best?.rain;
-    const winds=rs.map(x=>x.wind).filter(Number.isFinite);
-    const gusts=rs.map(x=>x.gust).filter(Number.isFinite);
-    const wind=Math.round(winds.length?winds.reduce((a,c)=>a+c,0)/winds.length:0);
-    const gust=Math.round(gusts.length?gusts.reduce((a,c)=>a+c,0)/gusts.length:0);
-    const cond=rs.some(x=>x.code>=95)?"Thunder":wetN>=2?"Rain/showers":wetN===1?"Possible shower":WDESC[code]||"Dry";
-    const cclass=rs.some(x=>x.code>=95)?"danger":wetN>=2?"rainWet":"";
-    const detail=MODELS.map(md=>{
-       const r=b.forecasts.find(x=>x&&x.source.id===md.id);
-       if(r)return `<div class="modelRow"><b>${md.label}</b><span>${Math.round(r.temp)}°</span><span>${r.precip.toFixed(1)} mm/h</span><span>${Math.round(r.wind)} / ${Math.round(r.gust)} km/h</span></div>`;
-       if(isResultPending(s,md.id))return `<div class="modelRow"><b>${md.label}</b><span>…</span><span>loading…</span><span>…</span></div>`;
-       return `<div class="modelRow"><b>${md.label}</b><span>—</span><span>not in range</span><span>—</span></div>`;
-    }).join("");
-    return `<div class="stop">
-      <div class="stopMain">
-        <div><div class="stopPlace"><span class="stopName">${b.p.label==="Start"?s.start:b.p.label==="Finish"?s.finish:b.p.label}</span></div><div class="stopMeta">${b.p.km} km · ${b.p.ele} m · ~${rideClock(b.p.ride_h,s,b.p.km)}</div></div>
-        <div class="pointWeather">
-          <div class="pointCondition">
-            <div class="wxIcon" aria-hidden="true">${WICON(code)}</div>
-            <div class="conditionText">${cond}</div>
-          </div>
-          <div class="pointMetrics">
-            <div class="pointMetricRow">
-              <span class="pointMetricLabel">Temp</span>
-              <span class="pointMetricValue">${meanT}°</span>
-            </div>
-            <div class="pointMetricRow">
-              <span class="pointMetricLabel">Rain</span>
-              <span class="pointMetricValue ${cclass}">${prob==null?"—":Math.round(prob)+"%"}</span>
-            </div>
-            <div class="pointMetricRow">
-              <span class="pointMetricLabel">Wind</span>
-              <span class="pointMetricValue">${wind} km/h</span>
-            </div>
-            <div class="pointGust">gust ${gust} km/h</div>
-          </div>
-        </div>
-      </div>
-      <details><summary>${b.conf.label.replace(" forecast consensus"," consensus")} · show detail</summary><div class="modelGrid">${detail}</div></details>
-    </div>`;
- }).join("");
+ const stillLoading=anyDeterministicPending(s);const currentIdx=currentRoutePointIndex(bundles,s);
+ document.getElementById("timeline").innerHTML=bundles.map((b,idx)=>{const rs=b.forecasts.filter(Boolean),disp=rs[0]||b.best;const activeClass=idx===currentIdx?" currentRoutePoint":"",badge=idx===currentIdx?`<span class="routePointBadge">NEXT</span>`:"";if(!disp){const status=stillLoading?"Loading forecast…":"Forecast not yet in range";return `<div class="stop${activeClass}"><div class="stopPlace">${b.p.label==="Start"?s.start:b.p.label==="Finish"?s.finish:b.p.label}${badge}</div><div class="stopMeta">${b.p.km} km · ${b.p.ele} m · ~${rideClock(b.p.ride_h,s,b.p.km)}</div><div class="risk">${status}</div></div>`}const temps=rs.map(x=>x.temp).filter(Number.isFinite),meanT=temps.length?Math.round(temps.reduce((a,c)=>a+c,0)/temps.length):Math.round(disp.temp),wetN=rs.filter(wet).length,code=rs.some(x=>x.code>=95)?95:wetN?80:disp.code,prob=b.best?.rain,winds=rs.map(x=>x.wind).filter(Number.isFinite),gusts=rs.map(x=>x.gust).filter(Number.isFinite),windDirs=rs.map(x=>x.wdir).filter(Number.isFinite),wind=Math.round(winds.length?winds.reduce((a,c)=>a+c,0)/winds.length:0),gust=Math.round(gusts.length?gusts.reduce((a,c)=>a+c,0)/gusts.length:0),meanWindDir=circularMeanDeg(windDirs),routeBearing=routeBearingAtKm(s,b.p.km),windEffect=windEffectLabel(routeBearing,meanWindDir,wind),cond=rs.some(x=>x.code>=95)?"Thunder":wetN>=2?"Rain/showers":wetN===1?"Possible shower":WDESC[code]||"Dry",cclass=rs.some(x=>x.code>=95)?"danger":wetN>=2?"rainWet":"";const detail=MODELS.map(md=>{const r=b.forecasts.find(x=>x&&x.source.id===md.id);if(r){
+         let rainProb=Number.isFinite(r.rain)?Math.round(r.rain)+"%":"—";
+         if(md.id==="ecmwf"&&!Number.isFinite(r.rain)){
+           const ep=pointEnsembleRainProbability(ensembleCache[s.key],s,b.p,idx);
+           if(Number.isFinite(ep))rainProb=ep+"% ENS";
+         }
+         return `<div class="modelRow"><b>${md.label}</b><span>${Math.round(r.temp)}°</span><span>Rain ${r.precip.toFixed(1)} mm/h · ${rainProb}</span><span>${Math.round(r.wind)} / ${Math.round(r.gust)} km/h</span></div>`;
+       }if(isResultPending(s,md.id))return `<div class="modelRow"><b>${md.label}</b><span>…</span><span>loading…</span><span>…</span></div>`;return `<div class="modelRow"><b>${md.label}</b><span>—</span><span>not in range</span><span>—</span></div>`}).join("");return `<div class="stop${activeClass}"><div class="stopMain"><div><div class="stopPlace"><span class="stopName">${b.p.label==="Start"?s.start:b.p.label==="Finish"?s.finish:b.p.label}</span>${badge}</div><div class="stopMeta">${b.p.km} km · ${b.p.ele} m · ~${rideClock(b.p.ride_h,s,b.p.km)}</div></div><div class="pointWeather"><div class="pointCondition"><div class="wxIcon" aria-hidden="true">${WICON(code)}</div><div class="conditionText">${cond}</div></div><div class="pointMetrics"><div class="pointMetricRow"><span class="pointMetricLabel">Temp</span><span class="pointMetricValue">${meanT}°</span></div><div class="pointMetricRow"><span class="pointMetricLabel">Rain</span><span class="pointMetricValue ${cclass}">${prob==null?"—":Math.round(prob)+"%"}</span></div><div class="pointMetricRow"><span class="pointMetricLabel">Wind</span><span class="pointMetricValue">${wind} km/h</span></div><div class="pointGust">gust ${gust} km/h</div>${windEffect?`<div class="pointGust">${windEffect.label}</div>`:""}</div></div></div><details><summary>${b.conf.label.replace(" forecast consensus"," consensus")} · show detail</summary><div class="modelGrid">${detail}</div></details></div>`}).join("");renderWorstHighlights(bundles,s);
 }
 function renderDeterministicResults(results,s,token,ensembleState){
  if(token!==renderToken || s!==stage())return {sm:null,error:null};
@@ -1955,62 +1990,7 @@ function renderDeterministicResults(results,s,token,ensembleState){
  return {sm,error:null};
 }
 async function showWeather(s,force,token){
- try{
-   const ensembleState={resolved:false,data:null};
-   let lastSm=null;
-   let lastError=null;
-
-   const sunPromise=fetchSunTimes(s,force)
-     .then(data=>{
-       if(token!==renderToken || s!==stage())return null;
-       if(data)renderSunTimes(data,s);
-       return data;
-     })
-     .catch(()=>null);
-
-   const ensemblePromise=fetchEnsemble(s,force)
-     .then(data=>{
-       ensembleState.resolved=true;
-       ensembleState.data=data;
-       if(token!==renderToken || s!==stage())return data;
-       if(lastSm)renderEnsembleRisk(ensembleStageRisk(data,s),lastSm.gmax);
-       return data;
-     })
-     .catch(()=>{
-       ensembleState.resolved=true;
-       ensembleState.data=null;
-       if(token!==renderToken || s!==stage())return null;
-       if(lastSm)renderEnsembleRisk(null,lastSm.gmax);
-       return null;
-     });
-
-   const deterministicPromise=fetchAllProgressive(s,force,(results)=>{
-     const rendered=renderDeterministicResults(results,s,token,ensembleState);
-     if(rendered.sm)lastSm=rendered.sm;
-     if(rendered.error)lastError=rendered.error;
-   });
-
-   const finalResults=await deterministicPromise;
-   if(token!==renderToken || s!==stage())return;
-
-   const finalRendered=renderDeterministicResults(finalResults,s,token,ensembleState);
-   if(finalRendered.sm)lastSm=finalRendered.sm;
-   if(finalRendered.error)lastError=finalRendered.error;
-
-   await Promise.allSettled([sunPromise,ensemblePromise]);
-   if(token!==renderToken || s!==stage())return;
-
-   if(!lastSm){
-     throw (lastError || new Error("Forecast not yet available"));
-   }
- }catch(e){
-   if(token!==renderToken || s!==stage()) return;
-   document.getElementById("timeline").innerHTML=`<div class="error">${e.message} Try Refresh if this persists.</div>`;
-   document.getElementById("outlook").textContent="Forecast not yet available";
-   document.getElementById("explain").textContent="The route remains available; live weather needs internet access and a model horizon that reaches this date.";
-   document.getElementById("agreement").className="agree low";document.getElementById("agreement").textContent="NOT IN RANGE";
- }
-}
+ const cachedBefore=safeStoreGet(s);try{const ensembleState={resolved:false,data:null};let lastSm=null,lastError=null;const sunPromise=fetchSunTimes(s,force).then(data=>{if(token!==renderToken||s!==stage())return null;if(data)renderSunTimes(data,s);return data}).catch(()=>null);const ensemblePromise=new Promise(resolve=>setTimeout(resolve,450)).then(()=>fetchEnsemble(s,force)).then(data=>{ensembleState.resolved=true;ensembleState.data=data;if(token!==renderToken||s!==stage())return data;if(lastSm)renderEnsembleRisk(ensembleStageRisk(data,s),lastSm.gmax);return data}).catch(()=>{ensembleState.resolved=true;ensembleState.data=null;if(token!==renderToken||s!==stage())return null;if(lastSm)renderEnsembleRisk(null,lastSm.gmax);return null});const deterministicPromise=fetchAllProgressive(s,force,(results)=>{const rendered=renderDeterministicResults(results,s,token,ensembleState);if(rendered.sm)lastSm=rendered.sm;if(rendered.error)lastError=rendered.error});const finalResults=await deterministicPromise;if(token!==renderToken||s!==stage())return;const finalRendered=renderDeterministicResults(finalResults,s,token,ensembleState);if(finalRendered.sm)lastSm=finalRendered.sm;if(finalRendered.error)lastError=finalRendered.error;await Promise.allSettled([sunPromise,ensemblePromise]);if(token!==renderToken||s!==stage())return;if(!lastSm)throw(lastError||new Error("Forecast not yet available"));const finalBundles=buildBundlesFromResults(finalResults,s,false),snap=forecastSnapshot(finalBundles,s);if(snap){let change="";if(force){change=changeText(snap,cachedBefore?.snapshot||null);lastChangeTextByStage[s.key]=change}else change=lastChangeTextByStage[s.key]||cachedBefore?.change||"";document.getElementById("forecastChange").textContent=change;renderFreshness(snap.ts,false);const cached=captureOfflineUI(s,snap);cached.change=change;safeStoreSet(s,cached)}}catch(e){if(token!==renderToken||s!==stage())return;if(restoreOfflineUI(s,cachedBefore))return;document.getElementById("timeline").innerHTML=`<div class="error">${e.message} Try Refresh if this persists.</div>`;document.getElementById("outlook").textContent="Forecast not yet available";document.getElementById("explain").textContent="The route remains available; live weather needs internet access and a model horizon that reaches this date.";document.getElementById("agreement").className="agree low";document.getElementById("agreement").textContent="NOT IN RANGE";document.getElementById("forecastChange").textContent="";renderFreshness(null,false)}}
 function initMap(){
  if(map)return;
  map=L.map("map");L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18,attribution:"© OpenStreetMap"}).addTo(map);
@@ -2052,13 +2032,7 @@ function drawProfile(s){
  svg.innerHTML=levels+distanceScale+`<path d="${d}" fill="none" stroke="#58b7f4" stroke-width="3" vector-effect="non-scaling-stroke"/><circle cx="${X(s.max_km)}" cy="${Y(s.max_ele)}" r="5" fill="#f1cc74"/>`;
 }
 async function render(force=false){
- const token=++renderToken;
- buildDays();
- const s=stage();
- baseUI(s);
- drawProfile(s);
- if(document.getElementById("routeDetails").open)drawRoute(s);
- await showWeather(s,force,token);
+ const token=++renderToken;buildDays();const s=stage();baseUI(s);drawProfile(s);if(document.getElementById("routeDetails").open)drawRoute(s);const cached=safeStoreGet(s);if(cached){restoreOfflineUI(s,cached);const fresh=document.getElementById("forecastFreshness");if(fresh){fresh.classList.remove("offline");fresh.textContent=`Updating… · Last updated ${formatUpdatedTime(cached.ts)}`}}await showWeather(s,force,token);
 }
 
 
@@ -2138,6 +2112,8 @@ document.getElementById("startTime").addEventListener("change",e=>{
  }
  render(false);
 });
+window.addEventListener("offline",()=>{const s=stage(),cached=safeStoreGet(s);if(cached)restoreOfflineUI(s,cached)});
+window.addEventListener("online",()=>{const el=document.getElementById("forecastFreshness");if(el&&el.classList.contains("offline"))el.textContent+=" · tap Refresh"});
 document.getElementById("routeDetails").addEventListener("toggle",()=>{if(document.getElementById("routeDetails").open)drawRoute(stage())});
 render(false);
 </script>
