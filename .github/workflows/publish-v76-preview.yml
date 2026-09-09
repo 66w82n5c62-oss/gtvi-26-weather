@@ -1,0 +1,56 @@
+name: Publish v76 preview
+
+on:
+  push:
+    paths:
+      - '.github/workflows/publish-v76-preview.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Build v76 preview
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          s=Path('preview-v75.html').read_text()
+          s=s.replace('<title>GTVI 26 Weather App · Mobile v75 Preview</title>','<title>GTVI 26 Weather App · Mobile v76 Preview</title>',1)
+          repl={
+            '--muted:#a6b9ca;':'--muted:#bac9d6;',
+            'color:#7891a6':'color:#94a9ba',
+            'color:#7f98ad':'color:#9bb0c0',
+            'color:#839aaf':'color:#9dafbf',
+            'color:#8199ae':'color:#9eb1c0',
+            'color:#8ca5ba':'color:#a8bac8',
+            'color:#8fa7bb':'color:#aabcca',
+            'color:#8fa8bc':'color:#aabcca',
+            'color:#93aac0':'color:#aec0cd',
+            'color:#9fb4c6':'color:#b9c8d3',
+            'color:#a8bdce':'color:#bdcbd6',
+            'color:#a9bfd2':'color:#bfced9',
+            'color:#a9c4dc':'color:#bfd4e5',
+          }
+          for a,b in repl.items(): s=s.replace(a,b)
+          css='''\n/* v76: slightly brighter secondary text for improved mobile readability */\n.date,\n.metricSub,\n.timeHint,\n.breakSub,\n.breakSummary,\n.consensusHint,\n.mobileWayTitle .wayTimingInline,\n.mobileSunCompact,\n.mobilePlanNote,\n.stopMeta,\n.pointMetricLabel,\n.pointGust,\n.aboutForecastBody,\n.aboutForecastFoot{\n  filter:brightness(1.08);\n}\n'''
+          s=s.replace('</style>',css+'\n</style>',1)
+          Path('preview-v76.html').write_text(s)
+          PY
+          node --check <(python3 - <<'PY'
+          import re
+          s=open('preview-v76.html').read()
+          print('\n'.join(re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,re.S)))
+          PY
+          )
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add preview-v76.html
+          git commit -m 'Publish v76 preview with brighter secondary text'
+          git push origin main
