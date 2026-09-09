@@ -1,0 +1,62 @@
+name: Publish v78 sunshine preview
+
+on:
+  push:
+    paths:
+      - '.github/workflows/publish-v78.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Build v78 from static v77
+        shell: bash
+        run: |
+          cp preview-v77.html preview-v78.html
+          python3 - <<'PY'
+          from pathlib import Path
+          s=Path('preview-v78.html').read_text(encoding='utf-8')
+          s=s.replace('<title>GTVI 26 Weather App · Mobile v77 Preview</title>','<title>GTVI 26 Weather App · Mobile v78 Preview</title>',1)
+          s=s.replace('hourly=temperature_2m,precipitation,wind_speed_10m,wind_gusts_10m&models=', 'hourly=temperature_2m,precipitation,wind_speed_10m,wind_gusts_10m,sunshine_duration&models=',1)
+          s=s.replace('const r=members[id]||(members[id]={gust:[],wind:[],precip:[],temp:[]});', 'const r=members[id]||(members[id]={gust:[],wind:[],precip:[],temp:[],sun:[]});',1)
+          s=s.replace('const gv=get("wind_gusts_10m"),wv=get("wind_speed_10m"),pv=get("precipitation"),tv=get("temperature_2m");', 'const gv=get("wind_gusts_10m"),wv=get("wind_speed_10m"),pv=get("precipitation"),tv=get("temperature_2m"),sv=get("sunshine_duration");',1)
+          s=s.replace('if(tv!==null)r.temp.push(tv);', 'if(tv!==null)r.temp.push(tv);\n     if(sv!==null)r.sun.push(sv);',1)
+          needle=''' const maxP=rows.map(r=>r.precip.length?Math.max(...r.precip):0);\n const exceed=t=>Math.round(100*maxG.filter(x=>x>=t).length/maxG.length);'''
+          repl=''' const maxP=rows.map(r=>r.precip.length?Math.max(...r.precip):0);\n const startISO=arrivalInfo(s.samples[0].ride_h,s,s.samples[0].km).iso;\n const endISO=arrivalInfo(s.samples[s.samples.length-1].ride_h,s,s.samples[s.samples.length-1].km).iso;\n const elapsedHours=Math.max(0,(new Date(endISO)-new Date(startISO))/3600000);\n const sunHours=rows.map(r=>r.sun.length?(r.sun.reduce((a,c)=>a+c,0)/(r.sun.length*3600))*elapsedHours:null).filter(Number.isFinite);\n const exceed=t=>Math.round(100*maxG.filter(x=>x>=t).length/maxG.length);'''
+          if needle not in s: raise SystemExit('sun calculation anchor missing')
+          s=s.replace(needle,repl,1)
+          needle='''   rainHeavy:Math.round(100*maxP.filter(x=>x>=2).length/maxP.length),\n   precipP90:percentile(maxP,.9)'''
+          repl='''   rainHeavy:Math.round(100*maxP.filter(x=>x>=2).length/maxP.length),\n   precipP90:percentile(maxP,.9),\n\n   sunExpected:sunHours.length?percentile(sunHours,.5):null,\n   sunP10:sunHours.length?percentile(sunHours,.1):null,\n   sunP90:sunHours.length?percentile(sunHours,.9):null'''
+          if needle not in s: raise SystemExit('risk return anchor missing')
+          s=s.replace(needle,repl,1)
+          s=s.replace(''' <div class="riskRow"><div class="riskRowTitle">Rain</div><div class="riskMain">Loading…</div></div>`;''',''' <div class="riskRow"><div class="riskRowTitle">Rain</div><div class="riskMain">Loading…</div></div>\n <div class="riskRow"><div class="riskRowTitle">Sunshine</div><div class="riskMain">Loading…</div></div>`;''',1)
+          needle='''   <div class="riskRow">\n     <div class="riskRowTitle">Rain</div>\n     <div class="riskMain">${risk.rainAny}% chance</div>\n     <div class="riskDetail">Heavier rain risk ${risk.rainHeavy}%${risk.precipP90>0.1?` · high-end peak ~${risk.precipP90.toFixed(1)} mm/h`:""}</div>\n   </div>`;'''
+          repl='''   <div class="riskRow">\n     <div class="riskRowTitle">Rain</div>\n     <div class="riskMain">${risk.rainAny}% chance</div>\n     <div class="riskDetail">Heavier rain risk ${risk.rainHeavy}%${risk.precipP90>0.1?` · high-end peak ~${risk.precipP90.toFixed(1)} mm/h`:""}</div>\n   </div>\n\n   <div class="riskRow">\n     <div class="riskRowTitle">Sunshine</div>\n     <div class="riskMain">${Number.isFinite(risk.sunExpected)?`~${risk.sunExpected.toFixed(1)} h`:"Unavailable"}</div>\n     <div class="riskDetail">${Number.isFinite(risk.sunP10)&&Number.isFinite(risk.sunP90)?`Likely range ${risk.sunP10.toFixed(1)}–${risk.sunP90.toFixed(1)} h during the planned ride`:"Ensemble sunshine duration unavailable"}</div>\n   </div>`;'''
+          if needle not in s: raise SystemExit('render sunshine anchor missing')
+          s=s.replace(needle,repl,1)
+          s=s.replace('<li><b>Forecast spread</b> shows the broader spread of likely conditions, using ensemble forecasting to highlight uncertainty.</li>', '<li><b>Forecast spread</b> shows the broader spread of likely conditions, using ensemble forecasting to highlight uncertainty, including expected sunshine during the planned ride.</li>',1)
+          Path('preview-v78.html').write_text(s,encoding='utf-8')
+          PY
+          python3 - <<'PY' > /tmp/v78-check.js
+          import re
+          s=open('preview-v78.html',encoding='utf-8').read()
+          print('\n'.join(re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,re.S)))
+          PY
+          node --check /tmp/v78-check.js
+          grep -q 'Mobile v78 Preview' preview-v78.html
+          grep -q 'sunshine_duration' preview-v78.html
+          grep -q 'sunExpected' preview-v78.html
+          grep -q 'Wettest' preview-v78.html
+          ! grep -q 'Strongest gusts' preview-v78.html
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add preview-v78.html
+          git commit -m 'Publish v78 sunshine forecast spread preview'
+          git push origin main
