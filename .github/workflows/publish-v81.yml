@@ -1,0 +1,82 @@
+name: Publish v81 preview
+
+on:
+  push:
+    paths:
+      - '.github/workflows/publish-v81.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Build v81 preview
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          s=Path('index.html').read_text(encoding='utf-8')
+          s=s.replace('<title>GTVI 26 Weather App · Mobile v80</title>','<title>GTVI 26 Weather App · Mobile v81 Preview</title>',1)
+          marker='''@media(max-width:390px){'''
+          css='''
+/* v81: iOS time-input fit — keep 08:30 fully inside the Wheels Rolling box */
+.mobileTimeInput{
+  appearance:none;
+  -webkit-appearance:none;
+  padding:0 1px!important;
+  font-size:11px!important;
+  letter-spacing:-.02em;
+  line-height:34px;
+  overflow:hidden;
+}
+.mobileTimeInput::-webkit-datetime-edit{
+  padding:0!important;
+  margin:0!important;
+  min-width:0!important;
+  width:100%!important;
+  color:#fff;
+  -webkit-text-fill-color:#fff;
+}
+.mobileTimeInput::-webkit-datetime-edit-fields-wrapper{
+  padding:0!important;
+  margin:0!important;
+  min-width:0!important;
+  width:100%!important;
+}
+.mobileTimeInput::-webkit-datetime-edit-hour-field,
+.mobileTimeInput::-webkit-datetime-edit-minute-field,
+.mobileTimeInput::-webkit-datetime-edit-text{
+  padding:0!important;
+  margin:0!important;
+}
+.mobileTimeInput::-webkit-calendar-picker-indicator{
+  display:none;
+  -webkit-appearance:none;
+}
+'''
+          if marker not in s: raise SystemExit('mobile media marker not found')
+          s=s.replace(marker,css+'\n'+marker,1)
+          Path('preview-v81.html').write_text(s,encoding='utf-8')
+          PY
+
+          python3 - <<'PY' > /tmp/v81-check.js
+          import re
+          s=open('preview-v81.html',encoding='utf-8').read()
+          print('\n'.join(re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,re.S)))
+          PY
+          node --check /tmp/v81-check.js
+          grep -q 'Mobile v81 Preview' preview-v81.html
+          grep -q 'iOS time-input fit' preview-v81.html
+          ! grep -Eq '☀️|☀|🌤️|⛅|🌞|🌥️|🌦️' preview-v81.html
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add preview-v81.html
+          git commit -m 'Publish v81 Wheels Rolling time fit preview'
+          git push origin main
