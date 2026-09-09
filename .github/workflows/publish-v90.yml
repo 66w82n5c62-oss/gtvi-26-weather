@@ -1,0 +1,42 @@
+name: Publish v90 preview
+on:
+  push:
+    paths:
+      - '.github/workflows/publish-v90.yml'
+      - '.github/v90-builder.py'
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Build and check
+        run: |
+          python3 .github/v90-builder.py
+          python3 - <<'PY' > /tmp/v90-check.js
+          import re
+          s=open('preview-v90.html',encoding='utf-8').read()
+          print('\n'.join(re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,re.S)))
+          PY
+          node --check /tmp/v90-check.js
+          grep -q 'Mobile v90 Preview' preview-v90.html
+          grep -q 'playGearShiftSound' preview-v90.html
+          grep -q 'refreshWheelMarkup' preview-v90.html
+          grep -q 'rotate(1800deg)' preview-v90.html
+          grep -q 'Make v89 default to current ride day' .github/workflows/publish-v89.yml || true
+          ! grep -Eq '☀️|☀|🌤️|⛅|🌞|🌥️|🌦️' preview-v90.html
+      - name: Publish preview
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add preview-v90.html
+          if git diff --cached --quiet; then
+            echo 'preview-v90.html already up to date'
+            exit 0
+          fi
+          git commit -m 'Publish v90 bicycle feedback preview'
+          git push origin main
