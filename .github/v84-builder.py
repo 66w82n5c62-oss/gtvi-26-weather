@@ -5,41 +5,39 @@ src = Path('index.html')
 out = Path('preview-v84.html')
 s = src.read_text(encoding='utf-8')
 
-# Version title
 s = s.replace('<title>GTVI 26 Weather App · Mobile v80</title>', '<title>GTVI 26 Weather App · Mobile v84 Preview</title>', 1)
 
-# 1) Fix iOS clipping by replacing only the Wheels Rolling native time control with a plain HH:MM text field.
-m = re.search(r'<input[^>]*class="mobileTimeInput"[^>]*>', s)
+# Fix iOS clipping: replace the Wheels Rolling native time control by id, preserving the HH:MM value contract.
+m = re.search(r'<input[^>]*id="startTime"[^>]*>', s)
 if not m:
-    raise SystemExit('mobileTimeInput markup not found')
+    raise SystemExit('startTime input not found')
 tag = m.group(0)
-new_tag = tag.replace('type="time"', 'type="text" inputmode="numeric"', 1)
-if new_tag == tag:
-    raise SystemExit('mobileTimeInput is not type=time')
+value = re.search(r'value="([^"]+)"', tag)
+default = value.group(1) if value else '08:30'
+classes = re.search(r'class="([^"]+)"', tag)
+klass = classes.group(1) if classes else 'mobileTimeInput'
+new_tag = f'<input id="startTime" class="{klass}" type="text" inputmode="numeric" value="{default}" aria-label="Wheels rolling time">'
 s = s.replace(tag, new_tag, 1)
 
-# 2) Add cloud cover to deterministic requests so Sunniest can use a real forecast field.
+# Add cloud cover to deterministic requests so Sunniest uses a real forecast field.
 old = 'temperature_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,wind_direction_10m'
-new = old + ',cloud_cover'
 if old not in s:
     raise SystemExit('hourly field list not found')
-s = s.replace(old, new, 1)
+s = s.replace(old, old + ',cloud_cover', 1)
 
-# 3) Carry cloud cover through normal and consensus rows.
+# Carry cloud cover through row() and consensusRow().
 old_row = 'gust:num(h.wind_gusts_10m?.[i])??0};'
 new_row = 'gust:num(h.wind_gusts_10m?.[i])??0,cloud:num(h.cloud_cover?.[i])};'
 if s.count(old_row) < 2:
     raise SystemExit('row/consensus row anchors not found')
 s = s.replace(old_row, new_row, 2)
 
-# 4) Carry average cloud into each Along-the-Way summary point.
 old_summary = 'const temp=temps.length?temps.reduce((a,c)=>a+c,0)/temps.length:(Number.isFinite(disp.temp)?disp.temp:null);const a=pointArrivalMinutes(b.p,s);return {km:b.p.km,time:a.time,rainProb,precip:meanPrecip,gust,temp}}'
 new_summary = 'const temp=temps.length?temps.reduce((a,c)=>a+c,0)/temps.length:(Number.isFinite(disp.temp)?disp.temp:null);const clouds=rs.map(x=>x.cloud).filter(Number.isFinite);const cloud=clouds.length?clouds.reduce((a,c)=>a+c,0)/clouds.length:(Number.isFinite(disp.cloud)?disp.cloud:null);const a=pointArrivalMinutes(b.p,s);return {km:b.p.km,time:a.time,rainProb,precip:meanPrecip,gust,temp,cloud}}'
 if old_summary not in s:
     raise SystemExit('bundleSummaryPoint anchor not found')
 s = s.replace(old_summary, new_summary, 1)
 
-# 5) Replace Wettest-only highlight with horizontally scrollable five-card ride highlights.
 start = s.find('function renderWorstHighlights(bundles,s){')
 end = s.find('function changeText(', start)
 if start < 0 or end < 0:
@@ -68,58 +66,36 @@ new_fn = '''function renderWorstHighlights(bundles,s){
 '''
 s = s[:start] + new_fn + s[end:]
 
-# 6) Readability + horizontal highlights carousel.
 css = r'''
 /* v84: iOS Wheels Rolling fit, brighter controls and scrollable ride highlights */
-.mobileTimeInput{
-  font-size:12px!important;
-  padding:0 4px!important;
-  letter-spacing:0!important;
-  text-align:center!important;
-  -webkit-appearance:none!important;
-  appearance:none!important;
-}
+.mobileTimeInput{font-size:12px!important;padding:0 4px!important;letter-spacing:0!important;text-align:center!important;-webkit-appearance:none!important;appearance:none!important}
 
 /* Forecast spread: slightly larger and whiter */
-.mobileRiskDisclosure>summary{font-size:12px!important;color:#edf4fa!important;}
-.forecastSources{font-size:10px!important;color:#cbd7e1!important;}
-.forecastSources span{color:#edf4fa!important;}
-.riskTitle{font-size:11px!important;color:#e6eef5!important;}
-.riskSource{font-size:10px!important;color:#c8d5df!important;}
-.riskRowTitle{font-size:10.5px!important;color:#d6e0e8!important;}
-.riskMain{font-size:14px!important;color:#f4f8fc!important;}
-.riskDetail{font-size:10px!important;color:#d3dee7!important;}
-.riskChip{font-size:10px!important;color:#d8e3eb!important;}
+.mobileRiskDisclosure>summary{font-size:12px!important;color:#edf4fa!important}
+.forecastSources{font-size:10px!important;color:#cbd7e1!important}
+.forecastSources span{color:#edf4fa!important}
+.riskTitle{font-size:11px!important;color:#e6eef5!important}
+.riskSource{font-size:10px!important;color:#c8d5df!important}
+.riskRowTitle{font-size:10.5px!important;color:#d6e0e8!important}
+.riskMain{font-size:14px!important;color:#f4f8fc!important}
+.riskDetail{font-size:10px!important;color:#d3dee7!important}
+.riskChip{font-size:10px!important;color:#d8e3eb!important}
 
 /* Ride Plan: slightly larger and whiter */
-.mobileRidePlan>summary{font-size:12px!important;color:#edf4fa!important;}
-.mobileSectionHead{font-size:12px!important;color:#edf4fa!important;}
-.mobileLabel{font-size:10px!important;color:#d2dde6!important;}
-.komootNote{font-size:9.5px!important;color:#c7d3dd!important;}
-.mobileStat span{font-size:8.5px!important;color:#bdcad5!important;}
-.mobileStopFieldLabel{font-size:8.5px!important;color:#bdcad5!important;}
-.mobilePlanNote{font-size:9.5px!important;color:#c2ced8!important;}
+.mobileRidePlan>summary{font-size:12px!important;color:#edf4fa!important}
+.mobileSectionHead{font-size:12px!important;color:#edf4fa!important}
+.mobileLabel{font-size:10px!important;color:#d2dde6!important}
+.komootNote{font-size:9.5px!important;color:#c7d3dd!important}
+.mobileStat span{font-size:8.5px!important;color:#bdcad5!important}
+.mobileStopFieldLabel{font-size:8.5px!important;color:#bdcad5!important}
+.mobilePlanNote{font-size:9.5px!important;color:#c2ced8!important}
 
 /* Swipeable ride highlights */
-.alongHighlights{
-  display:flex!important;
-  gap:6px!important;
-  overflow-x:auto!important;
-  scroll-snap-type:x mandatory;
-  -webkit-overflow-scrolling:touch;
-  scrollbar-width:none;
-  margin:0 0 7px;
-  padding-bottom:1px;
-}
-.alongHighlights::-webkit-scrollbar{display:none;}
-.alongHighlight{
-  flex:0 0 72%;
-  scroll-snap-align:start;
-  font-size:10px!important;
-  color:#edf5fb!important;
-}
-.alongHighlight b{font-size:10px!important;color:#9ed7fa!important;}
-@media(max-width:360px){.alongHighlight{flex-basis:84%;}}
+.alongHighlights{display:flex!important;gap:6px!important;overflow-x:auto!important;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin:0 0 7px;padding-bottom:1px}
+.alongHighlights::-webkit-scrollbar{display:none}
+.alongHighlight{flex:0 0 72%;scroll-snap-align:start;font-size:10px!important;color:#edf5fb!important}
+.alongHighlight b{font-size:10px!important;color:#9ed7fa!important}
+@media(max-width:360px){.alongHighlight{flex-basis:84%}}
 '''
 s = s.replace('</style>', css + '\n</style>', 1)
 
