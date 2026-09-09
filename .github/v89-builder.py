@@ -11,5 +11,10 @@ anchor='</style>'
 if anchor not in s:
     raise SystemExit('style end anchor not found')
 s=s.replace(anchor,css+anchor,1)
+old_today='''function setToday(){\n const n=new Date();\n if(n.getFullYear()===2026&&n.getMonth()===8){\n   const map={12:"D1",13:"D2",14:"D3",15:"D4",16:"D5A",17:"D6",18:"D7"};\n   if(map[n.getDate()])activeKey=map[n.getDate()];\n }\n}\nsetToday();'''
+new_today='''function setToday(){\n try{\n   const parts=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Vienna",year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date());\n   const o={};parts.forEach(p=>{if(p.type!=="literal")o[p.type]=p.value});\n   const iso=`${o.year}-${o.month}-${o.day}`;\n   const map={\n     "2026-09-12":"D1",\n     "2026-09-13":"D2",\n     "2026-09-14":"D3",\n     "2026-09-15":"D4",\n     "2026-09-16":"D5A",\n     "2026-09-17":"D6",\n     "2026-09-18":"D7"\n   };\n   if(map[iso])activeKey=map[iso];\n }catch(e){}\n}\nsetToday();'''
+if old_today not in s:
+    raise SystemExit('setToday anchor not found')
+s=s.replace(old_today,new_today,1)
 Path('preview-v89.html').write_text(s,encoding='utf-8')
 print('built preview-v89.html')
