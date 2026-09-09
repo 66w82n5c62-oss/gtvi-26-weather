@@ -1182,7 +1182,7 @@ details[open] > summary::before{
     <summary>Forecast spread</summary>
     <div class="forecastSources">
       <div><span>Forecasts compared</span> ECMWF IFS · DWD ICON · NOAA GFS</div>
-      <div><span>Range</span> ECMWF ensemble</div>
+      <div><span>Range</span> Ensemble (ECMWF preferred · GEFS fallback)</div>
     </div>
     <div id="ensembleRisk" class="riskRows ensembleRiskRows">
       <div class="riskRow"><div class="riskRowTitle">Wind</div><div class="riskMain">Loading…</div></div>
@@ -1323,9 +1323,9 @@ details[open] > summary::before{
     <p>This app is designed for the Vienna–Pula ride and combines several weather forecasts with the planned route and timing.</p>
     <ul>
       <li><b>Forecast consensus</b> shows how closely the main forecasts agree. It is a guide to confidence, not an official probability.</li>
-      <li><b>Forecast spread</b> shows the broader spread of likely conditions, using ensemble forecasting to highlight uncertainty, including expected sunshine during the planned ride.</li>
+      <li><b>Forecast spread</b> is separate from the central forecast and shows the broader ensemble range of possible conditions, including expected sunshine during the planned ride.</li>
       <li><b>Weather along the way</b> is matched to your expected position on the route based on the start time, riding speed and planned stops entered in the RIDE PLAN above.</li>
-      <li><b>Along-the-way headline values</b> use the consensus of ECMWF, DWD ICON and GFS at that route point; individual model values remain under show detail. Rain probability also uses ECMWF ensemble probability where available.</li>
+      <li><b>Along-the-way headline values</b> use the mean of ECMWF, DWD ICON and GFS at that route point for temperature, wind, gust, rainfall amount and cloud cover; wind direction uses a circular mean. Rain probability combines the available model probabilities and adds ECMWF ENS probability when available. Individual model values remain under show detail.</li>
       <li><b>Wind effect</b> compares forecast wind direction with the actual route bearing at each point, showing tailwind, cross-tailwind, crosswind, cross-headwind or headwind.</li>
       <li>Changing the <b>Ride plan</b> changes the point-by-point weather timing, but does not change the overall daily forecast consensus.</li>
       <li>Forecasts become more reliable as the ride day approaches, so refresh the app regularly and check again before setting off.</li>
@@ -1814,7 +1814,6 @@ function setRainAmountIcon(risk=null,deterministicPhrase=""){
 }
 function renderEnsembleRisk(risk,deterministicMax=null){
  const box=document.getElementById("ensembleRisk");
- setRainAmountIcon(risk,document.getElementById("outlook")?.textContent||"");
 
  if(!risk){
    box.innerHTML=`<div class="riskRow riskRowFull">
@@ -1865,11 +1864,6 @@ function renderEnsembleRisk(risk,deterministicMax=null){
  const spreadOrder={Sunshine:0,Temperature:1,Rain:2,Wind:3};
  Array.from(box.children).sort((a,b)=>(spreadOrder[a.querySelector(".riskRowTitle")?.textContent]??99)-(spreadOrder[b.querySelector(".riskRowTitle")?.textContent]??99)).forEach(el=>box.appendChild(el));
 
- document.getElementById("mWind").textContent=`Peak ~${w} km/h`;
- document.getElementById("mWindSub").textContent=`peak gust ~${g} km/h${risk.p60>0?` · 60+ risk ${risk.p60}%`:""}`;
- document.getElementById("mTemp").textContent=`${tLo}–${tHi}°`;
- document.getElementById("mRain").textContent=risk.rainAny+"%";
- document.getElementById("mRainSub").textContent=risk.rainHeavy?`somewhere on ride · heavier rain ${risk.rainHeavy}%`:"chance somewhere on ride";
 }
 function wet(r){return !!r&&((r.precip??0)>=0.2||(r.code??0)>=51)}
 function spread(v){v=v.filter(Number.isFinite);return v.length?Math.max(...v)-Math.min(...v):99}
@@ -1881,22 +1875,21 @@ function confidence(rows,d){
  const da=daysAway(d); if(da>7)score-=2;else if(da>5)score-=1;
  return score>=4?{level:"high",label:"Current forecast consensus: High"}:score>=2?{level:"medium",label:"Current forecast consensus: Medium"}:{level:"low",label:"Current forecast consensus: Low"};
 }
-function skySummary(bundles){
- const codes=bundles.flatMap(b=>b.forecasts.filter(Boolean).map(r=>r.code).filter(Number.isFinite));
- if(!codes.length)return {icon:cycleSunIcon(true),label:"Sun / cloud uncertain"};
- // Convert WMO weather codes into a simple sky-cover score.
- // 0 clear, 1 mainly clear, 2 partly cloudy, all cloud/fog/precip states treated as overcast.
- const scores=codes.map(c=>c===0?0:c===1?1:c===2?2:3);
- const avg=scores.reduce((a,c)=>a+c,0)/scores.length;
- if(avg<0.65)return {icon:cycleSunIcon(false),label:"Mostly sunny"};
- if(avg<1.45)return {icon:cycleSunIcon(true),label:"Sunny intervals"};
- if(avg<2.35)return {icon:cycleSunIcon(true),label:"Sun and cloud"};
- return {icon:"☁️",label:"Mostly cloudy"};
+function skySummary(bundles,s=stage()){
+ const clouds=bundles.map((b,idx)=>bundleSummaryPoint(b,s,idx)?.cloud).filter(Number.isFinite);
+ if(clouds.length){
+   const avg=meanFinite(clouds);
+   if(avg<20)return {icon:cycleSunIcon(false),label:"Mostly sunny"};
+   if(avg<45)return {icon:cycleSunIcon(true),label:"Sunny intervals"};
+   if(avg<70)return {icon:cycleSunIcon(true),label:"Sun and cloud"};
+   return {icon:"☁️",label:"Mostly cloudy"};
+ }
+ return {icon:cycleSunIcon(true),label:"Sun / cloud uncertain"};
 }
 function summarize(bundles,s=stage()){
  const pts=bundles.map((b,idx)=>bundleSummaryPoint(b,s,idx)).filter(Boolean);
  if(!pts.length)return null;
- const temps=pts.map(p=>p.temp).filter(Number.isFinite),gusts=pts.map(p=>p.gust).filter(Number.isFinite),rainProbs=pts.map(p=>p.rainProb).filter(Number.isFinite);
+ const temps=pts.map(p=>p.temp).filter(Number.isFinite),gusts=pts.map(p=>p.gust).filter(Number.isFinite),winds=pts.map(p=>p.wind).filter(Number.isFinite),rainProbs=pts.map(p=>p.rainProb).filter(Number.isFinite);
  const pointVotes=bundles.map(b=>{const rs=b.forecasts.filter(Boolean),need=Math.max(1,Math.ceil(rs.length/2));return {wet:rs.filter(wet).length>=need,thunder:rs.filter(r=>r.code>=95).length>=need}});
  const wetFrac=pointVotes.length?pointVotes.filter(x=>x.wet).length/pointVotes.length:0;
  const thunder=pointVotes.some(x=>x.thunder),heavy=pts.some(p=>(p.precip??0)>=2.5);
@@ -1904,10 +1897,10 @@ function summarize(bundles,s=stage()){
  const overall=confs.includes("low")?"low":confs.includes("medium")?"medium":"high";
  let phrase=thunder?"Thunderstorm risk":heavy?"Periods of rain likely":wetFrac>.55?"Showery / wet":wetFrac>.2?"Some shower risk":"Mostly dry";
  const tmin=temps.length?Math.round(Math.min(...temps)):null,tmax=temps.length?Math.round(Math.max(...temps)):null;
- const gmax=gusts.length?Math.round(Math.max(...gusts)):null;
+ const gmax=gusts.length?Math.round(Math.max(...gusts)):null,wmax=winds.length?Math.round(Math.max(...winds)):null;
  const rp=rainProbs.length?Math.round(Math.max(...rainProbs)):null;
- const sky=skySummary(bundles);
- return {phrase,tmin,tmax,gmax,rp,overall,sky};
+ const sky=skySummary(bundles,s);
+ return {phrase,tmin,tmax,gmax,wmax,rp,overall,sky};
 }
 function buildDays(){
  const el=document.getElementById("days");el.innerHTML="";
@@ -1954,7 +1947,7 @@ function buildBundlesFromResults(results,s,useConsensus=false){
  });
 }
 
-const FORECAST_STORE_PREFIX="gtvi26_forecast_v72_";
+const FORECAST_STORE_PREFIX="gtvi26_forecast_v86_";
 let lastChangeTextByStage={};
 function forecastStoreKey(s){return FORECAST_STORE_PREFIX+s.key}
 function safeStoreGet(s){try{const raw=localStorage.getItem(forecastStoreKey(s));return raw?JSON.parse(raw):null}catch(e){return null}}
@@ -2046,19 +2039,20 @@ function renderDeterministicResults(results,s,token,ensembleState){
  document.getElementById("mSkySub").textContent=sm.sky.label;
  document.getElementById("mRain").textContent=sm.rp===null?"—":sm.rp+"%";
  document.getElementById("mRainSub").textContent="highest route-point consensus";
+ document.getElementById("mWind").textContent=Number.isFinite(sm.wmax)?sm.wmax+" km/h":"—";
+ document.getElementById("mWindSub").textContent=Number.isFinite(sm.gmax)?`peak gusts ~${sm.gmax} km/h`:"";
 
  if(ensembleState.resolved){
    renderEnsembleRisk(ensembleStageRisk(ensembleState.data,s),sm.gmax);
  }else{
-   document.getElementById("mWind").textContent="Loading…";
-   document.getElementById("mWindSub").textContent="calculating likely wind + gust range";
+   // Ensemble spread loads independently; central cards remain deterministic consensus.
  }
 
  renderTimelineFromBundles(bundles,s);
  return {sm,error:null};
 }
 async function showWeather(s,force,token){
- const cachedBefore=safeStoreGet(s);try{const ensembleState={resolved:false,data:null};let lastSm=null,lastError=null;const sunPromise=fetchSunTimes(s,force).then(data=>{if(token!==renderToken||s!==stage())return null;if(data)renderSunTimes(data,s);return data}).catch(()=>null);const ensemblePromise=new Promise(resolve=>setTimeout(resolve,450)).then(()=>fetchEnsemble(s,force)).then(data=>{ensembleState.resolved=true;ensembleState.data=data;if(token!==renderToken||s!==stage())return data;if(lastSm)renderEnsembleRisk(ensembleStageRisk(data,s),lastSm.gmax);return data}).catch(()=>{ensembleState.resolved=true;ensembleState.data=null;if(token!==renderToken||s!==stage())return null;if(lastSm)renderEnsembleRisk(null,lastSm.gmax);return null});const deterministicPromise=fetchAllProgressive(s,force,(results)=>{const rendered=renderDeterministicResults(results,s,token,ensembleState);if(rendered.sm)lastSm=rendered.sm;if(rendered.error)lastError=rendered.error});const finalResults=await deterministicPromise;if(token!==renderToken||s!==stage())return;const finalRendered=renderDeterministicResults(finalResults,s,token,ensembleState);if(finalRendered.sm)lastSm=finalRendered.sm;if(finalRendered.error)lastError=finalRendered.error;await Promise.allSettled([sunPromise,ensemblePromise]);if(token!==renderToken||s!==stage())return;if(!lastSm)throw(lastError||new Error("Forecast not yet available"));const finalBundles=buildBundlesFromResults(finalResults,s,false),snap=forecastSnapshot(finalBundles,s);if(snap){let change="";if(force){change=changeText(snap,cachedBefore?.snapshot||null);lastChangeTextByStage[s.key]=change}else change=lastChangeTextByStage[s.key]||cachedBefore?.change||"";document.getElementById("forecastChange").textContent=change;renderFreshness(snap.ts,false);const cached=captureOfflineUI(s,snap);cached.change=change;safeStoreSet(s,cached)}}catch(e){if(token!==renderToken||s!==stage())return;if(restoreOfflineUI(s,cachedBefore))return;document.getElementById("timeline").innerHTML=`<div class="error">${e.message} Try Refresh if this persists.</div>`;document.getElementById("outlook").textContent="Forecast not yet available";document.getElementById("explain").textContent="The route remains available; live weather needs internet access and a model horizon that reaches this date.";document.getElementById("agreement").className="agree low";document.getElementById("agreement").textContent="NOT IN RANGE";document.getElementById("forecastChange").textContent="";renderFreshness(null,false)}}
+ const cachedBefore=safeStoreGet(s);try{const ensembleState={resolved:false,data:null};let lastSm=null,lastError=null;const sunPromise=fetchSunTimes(s,force).then(data=>{if(token!==renderToken||s!==stage())return null;if(data)renderSunTimes(data,s);return data}).catch(()=>null);const ensemblePromise=new Promise(resolve=>setTimeout(resolve,450)).then(()=>fetchEnsemble(s,force)).then(data=>{ensembleState.resolved=true;ensembleState.data=data;if(token!==renderToken||s!==stage())return data;if(lastSm){renderEnsembleRisk(ensembleStageRisk(data,s),lastSm.gmax);const rr=renderDeterministicResults(fetchedResults(s),s,token,ensembleState);if(rr.sm)lastSm=rr.sm;}return data}).catch(()=>{ensembleState.resolved=true;ensembleState.data=null;if(token!==renderToken||s!==stage())return null;if(lastSm)renderEnsembleRisk(null,lastSm.gmax);return null});const deterministicPromise=fetchAllProgressive(s,force,(results)=>{const rendered=renderDeterministicResults(results,s,token,ensembleState);if(rendered.sm)lastSm=rendered.sm;if(rendered.error)lastError=rendered.error});const finalResults=await deterministicPromise;if(token!==renderToken||s!==stage())return;const finalRendered=renderDeterministicResults(finalResults,s,token,ensembleState);if(finalRendered.sm)lastSm=finalRendered.sm;if(finalRendered.error)lastError=finalRendered.error;await Promise.allSettled([sunPromise,ensemblePromise]);if(token!==renderToken||s!==stage())return;if(!lastSm)throw(lastError||new Error("Forecast not yet available"));const finalBundles=buildBundlesFromResults(finalResults,s,false),snap=forecastSnapshot(finalBundles,s);if(snap){let change="";if(force){change=changeText(snap,cachedBefore?.snapshot||null);lastChangeTextByStage[s.key]=change}else change=lastChangeTextByStage[s.key]||cachedBefore?.change||"";document.getElementById("forecastChange").textContent=change;renderFreshness(snap.ts,false);const cached=captureOfflineUI(s,snap);cached.change=change;safeStoreSet(s,cached)}}catch(e){if(token!==renderToken||s!==stage())return;if(restoreOfflineUI(s,cachedBefore))return;document.getElementById("timeline").innerHTML=`<div class="error">${e.message} Try Refresh if this persists.</div>`;document.getElementById("outlook").textContent="Forecast not yet available";document.getElementById("explain").textContent="The route remains available; live weather needs internet access and a model horizon that reaches this date.";document.getElementById("agreement").className="agree low";document.getElementById("agreement").textContent="NOT IN RANGE";document.getElementById("forecastChange").textContent="";renderFreshness(null,false)}}
 function initMap(){
  if(map)return;
  map=L.map("map");L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18,attribution:"© OpenStreetMap"}).addTo(map);
