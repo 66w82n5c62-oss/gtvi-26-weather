@@ -1,0 +1,81 @@
+name: Publish v79 preview
+
+on:
+  push:
+    paths:
+      - '.github/workflows/publish-v79.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Build v79 preview
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p=Path('preview-v78.html')
+          s=p.read_text(encoding='utf-8')
+          s=s.replace('<title>GTVI 26 Weather App · Mobile v78 Preview</title>','<title>GTVI 26 Weather App · Mobile v79 Preview</title>',1)
+
+          # Deterministic forecast request: carry wind direction through.
+          s=s.replace('wind_speed_10m,wind_gusts_10m&', 'wind_speed_10m,wind_gusts_10m,wind_direction_10m&')
+
+          # Add wdir to both point and consensus rows.
+          old='wind:num(h.wind_speed_10m?.[i])??0,gust:num(h.wind_gusts_10m?.[i])??0}'
+          new='wind:num(h.wind_speed_10m?.[i])??0,gust:num(h.wind_gusts_10m?.[i])??0,wdir:num(h.wind_direction_10m?.[i])}'
+          if s.count(old)<2:
+              raise SystemExit(f'Expected row return pattern twice, found {s.count(old)}')
+          s=s.replace(old,new,2)
+
+          # Reorder initial Forecast spread placeholders: Sunshine, Temperature, Rain, Wind.
+          old_block='''<div class="riskRow"><div class="riskRowTitle">Wind</div><div class="riskMain">Loading…</div></div>\n <div class="riskRow"><div class="riskRowTitle">Temperature</div><div class="riskMain">Loading…</div></div>\n <div class="riskRow"><div class="riskRowTitle">Rain</div><div class="riskMain">Loading…</div></div>\n <div class="riskRow"><div class="riskRowTitle">Sunshine</div><div class="riskMain">Loading…</div></div>'''
+          new_block='''<div class="riskRow"><div class="riskRowTitle">Sunshine</div><div class="riskMain">Loading…</div></div>\n <div class="riskRow"><div class="riskRowTitle">Temperature</div><div class="riskMain">Loading…</div></div>\n <div class="riskRow"><div class="riskRowTitle">Rain</div><div class="riskMain">Loading…</div></div>\n <div class="riskRow"><div class="riskRowTitle">Wind</div><div class="riskMain">Loading…</div></div>'''
+          if old_block not in s:
+              raise SystemExit('Initial spread block not found')
+          s=s.replace(old_block,new_block,1)
+
+          # Reorder rendered Forecast spread cards by extracting the four cards from the template.
+          start=s.find('box.innerHTML=`', s.find('function renderEnsembleRisk'))
+          end=s.find('`;\n\n document.getElementById("mWind")', start)
+          if start<0 or end<0:
+              raise SystemExit('renderEnsembleRisk template not found')
+          template=s[start:end]
+          cards=[]
+          for label in ['Wind','Temperature','Rain','Sunshine']:
+              m=re.search(r'(   <div class="riskRow">\n     <div class="riskRowTitle">'+label+r'</div>.*?\n   </div>)',template,re.S)
+              if not m:
+                  raise SystemExit(f'{label} card not found')
+              cards.append((label,m.group(1)))
+          ordered=dict(cards)
+          replacement='box.innerHTML=`\n'+"\n\n".join(ordered[x] for x in ['Sunshine','Temperature','Rain','Wind'])
+          s=s[:start]+replacement+s[end:]
+
+          Path('preview-v79.html').write_text(s,encoding='utf-8')
+          PY
+
+          python3 - <<'PY' > /tmp/v79-check.js
+          import re
+          s=open('preview-v79.html',encoding='utf-8').read()
+          print('\n'.join(re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,re.S)))
+          PY
+          node --check /tmp/v79-check.js
+          grep -q 'Mobile v79 Preview' preview-v79.html
+          grep -q 'wind_direction_10m' preview-v79.html
+          grep -q 'wdir:num(h.wind_direction_10m' preview-v79.html
+          grep -q 'windEffect.label' preview-v79.html
+          ! grep -Eq '☀️|☀|🌤️|⛅|🌞|🌥️|🌦️' preview-v79.html
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add preview-v79.html
+          git commit -m 'Publish v79 preview'
+          git push origin main
