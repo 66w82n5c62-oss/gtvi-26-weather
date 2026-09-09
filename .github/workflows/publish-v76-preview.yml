@@ -42,10 +42,8 @@ jobs:
           for a,b in repl.items(): s=s.replace(a,b)
           css='''\n/* v76: slightly brighter secondary text for improved mobile readability */\n.date,\n.metricSub,\n.timeHint,\n.breakSub,\n.breakSummary,\n.consensusHint,\n.mobileWayTitle .wayTimingInline,\n.mobileSunCompact,\n.mobilePlanNote,\n.stopMeta,\n.pointMetricLabel,\n.pointGust,\n.aboutForecastBody,\n.aboutForecastFoot{\n  filter:brightness(1.08);\n}\n'''
           s=s.replace('</style>',css+'\n</style>',1)
-          old='''  el.innerHTML=\n    `<div class="alongHighlight"><b>Wettest</b>${wettest.time} · around ${Math.round(wettest.km)} km · ${wetDetail}</div>`+\n    `<div class="alongHighlight"><b>Strongest gusts</b>${gustiest.time} · around ${Math.round(gustiest.km)} km · ${Math.round(gustiest.gust)} km/h</div>`;'''
-          new='''  el.innerHTML=\n    `<div class="alongHighlight"><b>Wettest</b>${wettest.time} · around ${Math.round(wettest.km)} km · ${wetDetail}</div>`+\n    ``;'''
-          if old not in s: raise SystemExit('Strongest gusts highlight block missing')
-          s=s.replace(old,new,1)
+          s,n=re.subn(r'\+\s*`<div class="alongHighlight"><b>Strongest gusts</b>.*?</div>`', '', s, count=1, flags=re.S)
+          if n!=1: raise SystemExit('Could not remove Strongest gusts highlight')
           required=['Wettest','id="forecastChange"','currentRoutePointIndex','safeStoreGet','Last updated']
           missing=[x for x in required if x not in s]
           if missing: raise SystemExit('Missing retained features: '+repr(missing))
