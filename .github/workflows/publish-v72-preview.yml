@@ -1,0 +1,77 @@
+name: Publish v72 preview
+
+on:
+  push:
+    paths:
+      - '.github/workflows/publish-v72-preview.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Reconcile v71 preview into v72 preview
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          src=Path('preview-v71.html')
+          dst=Path('preview-v72.html')
+          s=src.read_text()
+
+          s=s.replace('<title>GTVI 26 Weather App · Mobile v71 Preview</title>',
+                      '<title>GTVI 26 Weather App · Mobile v72 Reconciled Preview</title>',1)
+
+          old='<span>☀ <b id="sunStartRise">—</b></span>'
+          new='<span><span class="sunriseWheelIcon" aria-hidden="true"></span> <b id="sunStartRise">—</b></span>'
+          if old not in s:
+              raise SystemExit('Expected v71 sunrise glyph not found')
+          s=s.replace(old,new,1)
+
+          if '.sunriseWheelIcon{' not in s:
+              css='''\n.sunriseWheelIcon{\n  display:inline-flex;\n  width:18px;\n  height:18px;\n  vertical-align:-4px;\n}\n.sunriseWheelIcon .cycleSunIcon{\n  width:18px;\n  height:18px;\n}\n'''
+              s=s.replace('</style>',css+'\n</style>',1)
+
+          wicon='const WICON=c=>c>=95?"⛈️":c>=80?cycleSunRainIcon():c>=61?"🌧️":c>=51?cycleSunRainIcon():c>=45?"🌫️":c===0?cycleSunIcon(false):c<=2?cycleSunIcon(true):"☁️";'
+          init='document.querySelectorAll(".sunriseWheelIcon").forEach(el=>el.innerHTML=cycleSunIcon(false));'
+          if wicon not in s:
+              raise SystemExit('WICON line not found')
+          if init not in s:
+              s=s.replace(wicon,wicon+'\n'+init,1)
+
+          s=s.replace('if(r.length<2)return {level:"low",label:"Low forecast consensus"};',
+                      'if(r.length<2)return {level:"low",label:"Current forecast consensus: Low"};',1)
+          s=s.replace('return score>=4?{level:"high",label:"High forecast consensus"}:score>=2?{level:"medium",label:"Medium forecast consensus"}:{level:"low",label:"Low forecast consensus"};',
+                      'return score>=4?{level:"high",label:"Current forecast consensus: High"}:score>=2?{level:"medium",label:"Current forecast consensus: Medium"}:{level:"low",label:"Current forecast consensus: Low"};',1)
+          s=s.replace('ag.textContent=headlineConsensus.charAt(0).toUpperCase()+headlineConsensus.slice(1)+" forecast consensus";',
+                      'ag.textContent="Current forecast consensus: "+headlineConsensus.charAt(0).toUpperCase()+headlineConsensus.slice(1);',1)
+
+          old_way='is matched to your expected position on the route, based on your start time, riding speed and planned stops.'
+          new_way='is matched to your expected position on the route based on the start time, riding speed and planned stops entered in the RIDE PLAN above.'
+          s=s.replace(old_way,new_way)
+
+          required=['id="alongHighlights"','id="forecastChange"','id="forecastFreshness"','currentRoutePointIndex','restoreOfflineUI','safeStoreGet','renderWorstHighlights','Updating… · Last updated']
+          missing=[x for x in required if x not in s]
+          if missing:
+              raise SystemExit('Missing v71 features: '+repr(missing))
+          for glyph in ['☀️','☀','🌤️','⛅','🌞','🌥️','🌦️']:
+              if glyph in s:
+                  raise SystemExit('Ordinary sun-bearing glyph remains: '+glyph)
+          if 'Current forecast consensus:' not in s:
+              raise SystemExit('Consensus wording missing')
+          if 'entered in the RIDE PLAN above' not in s:
+              raise SystemExit('RIDE PLAN wording missing')
+
+          dst.write_text(s)
+          PY
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add preview-v72.html
+          git commit -m 'Publish v72 reconciled preview page'
+          git push origin main
