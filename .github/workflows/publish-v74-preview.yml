@@ -21,6 +21,7 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
+          import re
           src=Path('preview-v73.html')
           dst=Path('preview-v74.html')
           s=src.read_text()
@@ -43,31 +44,25 @@ jobs:
           if anchor not in s: raise SystemExit('ensembleStageRisk anchor missing')
           s=s.replace(anchor,helper,1)
 
-          old='''       if(r){
-                 const rainProb=Number.isFinite(r.rain)?Math.round(r.rain)+"%":"—";
-                 return `<div class="modelRow"><b>${md.label}</b><span>${Math.round(r.temp)}°</span><span>${r.precip.toFixed(1)} mm/h · ${rainProb}</span><span>${Math.round(r.wind)} / ${Math.round(r.gust)} km/h</span></div>`;
-               }
-          '''
-          new='''       if(r){
-                 let rainProb=Number.isFinite(r.rain)?Math.round(r.rain)+"%":"—";
-                 if(md.id==="ecmwf"&&!Number.isFinite(r.rain)){
-                   const ep=pointEnsembleRainProbability(ensembleCache[s.key],s,b.p,idx);
-                   if(Number.isFinite(ep))rainProb=ep+"% ENS";
-                 }
-                 return `<div class="modelRow"><b>${md.label}</b><span>${Math.round(r.temp)}°</span><span>Rain ${r.precip.toFixed(1)} mm/h · ${rainProb}</span><span>${Math.round(r.wind)} / ${Math.round(r.gust)} km/h</span></div>`;
-               }
-          '''
-          if old not in s: raise SystemExit('model detail block missing')
+          old='const rainProb=Number.isFinite(r.rain)?Math.round(r.rain)+"%":"—";'
+          new='''let rainProb=Number.isFinite(r.rain)?Math.round(r.rain)+"%":"—";
+         if(md.id==="ecmwf"&&!Number.isFinite(r.rain)){
+           const ep=pointEnsembleRainProbability(ensembleCache[s.key],s,b.p,idx);
+           if(Number.isFinite(ep))rainProb=ep+"% ENS";
+         }'''
+          if old not in s: raise SystemExit('rainProb line missing')
           s=s.replace(old,new,1)
+
+          oldret='<span>${r.precip.toFixed(1)} mm/h · ${rainProb}</span>'
+          newret='<span>Rain ${r.precip.toFixed(1)} mm/h · ${rainProb}</span>'
+          if oldret not in s: raise SystemExit('rain display span missing')
+          s=s.replace(oldret,newret,1)
           dst.write_text(s)
+
+          scripts='\n'.join(re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,re.S))
+          Path('v74-check.js').write_text(scripts)
           PY
-          node --check <(python3 - <<'PY'
-          from pathlib import Path
-          import re
-          s=Path('preview-v74.html').read_text()
-          print('\n'.join(re.findall(r'<script(?:\s[^>]*)?>(.*?)</script>',s,re.S)))
-          PY
-          )
+          node --check v74-check.js
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add preview-v74.html
