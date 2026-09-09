@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#081522">
-<title>GTVI 26 Weather App · Mobile v70</title>
+<title>GTVI 26 Weather App · Mobile v71 Preview</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
 :root {
@@ -491,7 +491,7 @@ header{align-items:center;margin-bottom:8px}
   border:1px solid #2d4a64;
   border-radius:8px;
   padding:0 4px;
-  font-size:14px;
+  font-size:12px;
   font-weight:850;
   font-variant-numeric:tabular-nums;
 }
@@ -1044,6 +1044,21 @@ details[open] > summary::before{
 .sunriseWheelIcon .cycleSunIcon{
   width:18px;
   height:18px;
+}
+
+
+.mobileTimeInput{
+  padding:0 2px;
+  line-height:34px;
+}
+.mobileTimeInput::-webkit-datetime-edit,
+.mobileTimeInput::-webkit-datetime-edit-fields-wrapper,
+.mobileTimeInput::-webkit-datetime-edit-hour-field,
+.mobileTimeInput::-webkit-datetime-edit-minute-field,
+.mobileTimeInput::-webkit-datetime-edit-text{
+  font-size:12px;
+  line-height:34px;
+  padding:0;
 }
 
 </style>
