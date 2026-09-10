@@ -1,0 +1,2 @@
+Cloudflare Web Analytics enabled on 2026-09-10.
+This file exists only to trigger a fresh Pages deployment so the analytics beacon can be injected. It does not affect the GTVI 26 Weather App.
