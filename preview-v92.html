@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#081522">
+<title>GTVI 26 Weather App · Mobile v92 Preview</title>
+<style>
+html,body{margin:0;min-height:100%;background:#081522;color:#f4f8fc;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+#boot{padding:24px;text-align:center;color:#bac9d6;font-size:14px}
+</style>
+</head>
+<body>
+<div id="boot">Loading GTVI 26 Weather App v92…</div>
+<script>
+(async()=>{
+  try{
+    const r=await fetch('./preview-v90.html?v=90-1',{cache:'no-store'});
+    if(!r.ok) throw new Error('Could not load v90 base ('+r.status+')');
+    let html=await r.text();
+
+    // v92 inherits the proven v90 app and the v91 silent-interaction change.
+    html=html.replaceAll('playGearShiftSound();','');
+    html=html.replace(
+      'function playGearShiftSound(){',
+      'function playGearShiftSound(){ return; /* v92: interaction audio removed */'
+    );
+
+    // v92 cosmetic change 1: day selector shows only D1/D2/.../D5A/D5B/D6/D7.
+    html=html.replace(
+      'b.innerHTML=`<b>${key} · ${wd}</b><span>${dm}</span>`;',
+      'b.innerHTML=`<b>${key}</b>`;'
+    );
+
+    // v92 cosmetic change 2: force sunrise and sunset items onto the same visual centre line.
+    const alignCss=`\n/* v92: sunrise/sunset visual alignment */\n.mobileSunCompact > span{display:inline-flex!important;align-items:center!important;height:12px!important;line-height:12px!important;}\n.mobileSunCompact > span > b{display:inline-block!important;line-height:12px!important;}\n.mobileSunCompact .sunriseWheelIcon{vertical-align:middle!important;}\n`;
+    html=html.replace('</style>',alignCss+'</style>');
+
+    // Identify this derived preview correctly.
+    html=html.replaceAll('Mobile v90 Preview','Mobile v92 Preview');
+    html=html.replaceAll('Mobile v90','Mobile v92');
+
+    document.open();
+    document.write(html);
+    document.close();
+  }catch(err){
+    document.getElementById('boot').textContent='Unable to load v92 preview: '+err.message;
+  }
+})();
+</script>
+</body>
+</html>
