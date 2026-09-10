@@ -36,6 +36,10 @@ html,body{margin:0;min-height:100%;background:#081522;color:#f4f8fc;font-family:
     const alignCss=`\n/* v92: sunrise/sunset visual alignment */\n.mobileSunCompact > span{display:inline-flex!important;align-items:center!important;height:12px!important;line-height:12px!important;}\n.mobileSunCompact > span > b{display:inline-block!important;line-height:12px!important;}\n.mobileSunCompact .sunriseWheelIcon{vertical-align:middle!important;}\n`;
     html=html.replace('</style>',alignCss+'</style>');
 
+    // v92 cosmetic change 3: slightly larger, easier-to-tap day buttons while retaining all eight across.
+    const dayButtonCss=`\n/* v92: larger day selector buttons */\n.day{padding:10px 2px!important;min-height:40px!important;display:flex!important;align-items:center!important;justify-content:center!important;}\n.day b{font-size:12px!important;line-height:1!important;}\n`;
+    html=html.replace('</style>',dayButtonCss+'</style>');
+
     // Identify this derived preview correctly.
     html=html.replaceAll('Mobile v90 Preview','Mobile v92 Preview');
     html=html.replaceAll('Mobile v90','Mobile v92');
