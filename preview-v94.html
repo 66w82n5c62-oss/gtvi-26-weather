@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#081522">
+<title>GTVI 26 Weather App · Mobile v94 Preview</title>
+<style>
+html,body{margin:0;min-height:100%;background:#081522;color:#f4f8fc;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+#boot{padding:24px;text-align:center;color:#bac9d6;font-size:14px}
+</style>
+</head>
+<body>
+<div id="boot">Loading GTVI 26 Weather App v94…</div>
+<script>
+(async()=>{
+  try{
+    const r=await fetch('./preview-v90.html?v=90-1',{cache:'no-store'});
+    if(!r.ok) throw new Error('Could not load v90 base ('+r.status+')');
+    let html=await r.text();
+
+    // v94 retains the proven v90 app, v91 silent interactions, and all approved v92/v93 refinements.
+    html=html.replaceAll('playGearShiftSound();','');
+    html=html.replace(
+      'function playGearShiftSound(){',
+      'function playGearShiftSound(){ return; /* v94: interaction audio removed */'
+    );
+
+    html=html.replace(
+      'b.innerHTML=`<b>${key} · ${wd}</b><span>${dm}</span>`;',
+      'b.innerHTML=`<b>${key}</b>`;'
+    );
+
+    const alignCss=`\n/* v92: sunrise/sunset visual alignment */\n.mobileSunCompact > span{display:inline-flex!important;align-items:center!important;height:12px!important;line-height:12px!important;}\n.mobileSunCompact > span > b{display:inline-block!important;line-height:12px!important;}\n.mobileSunCompact .sunriseWheelIcon{vertical-align:middle!important;}\n`;
+    html=html.replace('</style>',alignCss+'</style>');
+
+    const dayButtonCss=`\n/* v92: larger day selector buttons */\n.day{padding:10px 2px!important;min-height:40px!important;display:flex!important;align-items:center!important;justify-content:center!important;}\n.day b{font-size:12px!important;line-height:1!important;}\n`;
+    html=html.replace('</style>',dayButtonCss+'</style>');
+
+    const timeInputCss=`\n/* v93: smaller Wheels rolling time value */\n.mobileTimeInput{font-size:10px!important;padding-left:2px!important;padding-right:2px!important;letter-spacing:-.01em!important;}\n`;
+    html=html.replace('</style>',timeInputCss+'</style>');
+
+    // v94: stronger, consistent precipitation progression. The existing cycleSunIcon() function is NOT modified.
+    const iconCss=`\n/* v94 precipitation icon system */\n.v94WxStack{position:relative;display:inline-block;width:40px;height:40px;vertical-align:middle;}\n.v94WxStack>.cycleSunIcon{position:absolute;left:0;top:0;}\n.v94WxStack .v94RainForeground{position:absolute;inset:0;width:40px;height:40px;display:block;overflow:visible;}\n.v94IconKey{max-width:900px;margin:8px auto 2px;padding:0 14px;}\n.v94IconKey details{background:#0d1f31;border:1px solid #294660;border-radius:13px;padding:8px 10px;}\n.v94IconKey summary{cursor:pointer;font-size:12px;font-weight:850;color:#dce8f2;}\n.v94IconKeyRow{display:flex;gap:8px;overflow-x:auto;padding:10px 0 3px;scrollbar-width:thin;}\n.v94IconKeyItem{flex:0 0 88px;min-height:74px;background:#10263b;border:1px solid #29455f;border-radius:10px;padding:7px 5px;text-align:center;font-size:9px;line-height:1.2;color:#b9c8d3;}\n.v94IconKeyGlyph{height:44px;display:flex;align-items:center;justify-content:center;}\n.v94IconKeyGlyph>.cycleSunIcon{width:40px;height:40px;}\n.v94IconKeyGlyph .rainIntensityWxIcon,.v94IconKeyGlyph .v94WxStack{width:40px;height:40px;}\n`;
+    html=html.replace('</style>',iconCss+'</style>');
+
+    html=html.replace('63:"Rain"','63:"Moderate rain"');
+
+    const oldWicon='const WICON=c=>c>=95?"⛈️":c===82?rainIntensityIcon(true,3):c===81?rainIntensityIcon(true,2):c>=80?rainIntensityIcon(true,1):c>=65?rainIntensityIcon(false,3):c>=63?rainIntensityIcon(false,2):c>=61?rainIntensityIcon(false,1):c>=51?rainIntensityIcon(false,1):c>=45?"🌫️":c===0?cycleSunIcon(false):c<=2?cycleSunIcon(true):"☁️";';
+    const iconLogic=`function v94RainIcon(showery,intensity,storm){
+ const n=Math.max(1,Math.min(4,intensity||1));
+ const dropXs=[[24],[18,30],[14,24,34],[11,20,29,38]][n-1];
+ const dropTop=n===1?32:31;
+ const drops=dropXs.map(function(x){
+   const h=n===1?5:n===4?8:7;
+   const w=n===1?1.0:n===4?1.6:1.35;
+   return '<path d="M '+x+' '+dropTop+' C '+(x-w)+' '+(dropTop+2.4)+' '+(x-w)+' '+(dropTop+h-1.3)+' '+x+' '+(dropTop+h)+' C '+(x+w)+' '+(dropTop+h-1.3)+' '+(x+w)+' '+(dropTop+2.4)+' '+x+' '+dropTop+' Z"/>';
+ }).join('');
+ const cloudFill=n===4?'#75899b':n===3?'#879aac':n===2?'#9eafbf':'#b8c6d2';
+ const sun=showery?cycleSunIcon(false):'';
+ const lightning=storm?'<path d="M27 22 L22 31 H27 L24 39 L34 27 H29 L33 22 Z" fill="#ffd84d" stroke="#f4b500" stroke-width=".7"/>':'';
+ return '<span class="v94WxStack">'+sun+'<svg class="v94RainForeground" viewBox="0 0 48 48" aria-hidden="true"><g><path d="M14 26.5c0-4.7 3.8-8.5 8.5-8.5 3.2 0 6 1.8 7.5 4.4.8-.4 1.8-.6 2.8-.6 3.7 0 6.7 2.9 6.7 6.5S36.5 34.5 32.8 34.5H15.7C11.4 34.5 8 31.3 8 27.4c0-3.3 2.4-6 5.7-6.8.1 0 .2 0 .3-.1" fill="'+cloudFill+'" stroke="#dce7ef" stroke-width="1.2"/></g>'+lightning+'<g fill="#65bff1">'+drops+'</g></svg></span>';
+}
+const WICON=c=>c>=99?v94RainIcon(false,4,true):c>=96?v94RainIcon(false,3,true):c>=95?v94RainIcon(false,2,true):c===82?v94RainIcon(true,4,false):c===81?v94RainIcon(true,3,false):c>=80?v94RainIcon(true,2,false):c>=65?v94RainIcon(false,4,false):c>=63?v94RainIcon(false,3,false):c>=61?v94RainIcon(false,2,false):c>=51?v94RainIcon(false,1,false):c>=45?"🌫️":c===0?cycleSunIcon(false):c<=2?cycleSunIcon(true):"☁️";`;
+    html=html.replace(oldWicon,iconLogic);
+
+    // Preview-only key so the complete icon ladder can be inspected without waiting for matching forecast conditions.
+    const iconKey='<div class="v94IconKey"><details open><summary>v94 weather icon preview — tap to hide</summary><div class="v94IconKeyRow" id="v94IconKeyRow"></div></details></div>';
+    html=html.replace('<body>','<body>'+iconKey);
+    const keyScript=`<script>(function(){var states=[[0,'Clear'],[2,'Partly cloudy'],[3,'Cloudy'],[51,'Drizzle'],[61,'Light rain'],[63,'Moderate rain'],[65,'Heavy rain'],[80,'Light showers'],[81,'Rain showers'],[82,'Heavy showers'],[95,'Thunderstorm']];var row=document.getElementById('v94IconKeyRow');if(row)row.innerHTML=states.map(function(x){return '<div class="v94IconKeyItem"><div class="v94IconKeyGlyph">'+WICON(x[0])+'</div><div>'+x[1]+'</div></div>';}).join('');})();<\/script>`;
+    html=html.replace('</body>',keyScript+'</body>');
+
+    html=html.replaceAll('Mobile v90 Preview','Mobile v94 Preview');
+    html=html.replaceAll('Mobile v90','Mobile v94');
+
+    document.open();
+    document.write(html);
+    document.close();
+  }catch(err){
+    document.getElementById('boot').textContent='Unable to load v94 preview: '+err.message;
+  }
+})();
+</script>
+</body>
+</html>
