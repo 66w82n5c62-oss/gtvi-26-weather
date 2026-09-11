@@ -1,21 +1,49 @@
 const HOST = "gtvi-26-weather.pages.dev";
+const COOKIE_NAME = "gtvi_usage_session";
 
-function unauthorized() {
-  return new Response("Authentication required", {
-    status: 401,
-    headers: { "WWW-Authenticate": 'Basic realm="GTVI Usage", charset="UTF-8"' }
-  });
+function cookieValue(request, name) {
+  const cookies = request.headers.get("Cookie") || "";
+  for (const part of cookies.split(";")) {
+    const i = part.indexOf("=");
+    if (i < 0) continue;
+    if (part.slice(0, i).trim() === name) return part.slice(i + 1).trim();
+  }
+  return "";
 }
 
-function authorised(request, env) {
-  const header = request.headers.get("Authorization") || "";
-  if (!header.startsWith("Basic ") || !env.USAGE_PASSWORD) return false;
+async function hmacKey(secret) {
+  return crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["verify"]
+  );
+}
+
+function unbase64url(s) {
+  s = s.replace(/-/g, "+").replace(/_/g, "/");
+  while (s.length % 4) s += "=";
+  const raw = atob(s);
+  const out = new Uint8Array(raw.length);
+  for (let i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
+  return out;
+}
+
+async function authorised(request, env) {
+  if (!env.USAGE_PASSWORD) return false;
+  const token = cookieValue(request, COOKIE_NAME);
+  const parts = token.split(".");
+  if (parts.length !== 3 || parts[0] !== "v1") return false;
+  const expires = Number(parts[1]);
+  if (!Number.isFinite(expires) || expires <= Date.now()) return false;
   try {
-    const decoded = atob(header.slice(6));
-    const split = decoded.indexOf(":");
-    const user = split >= 0 ? decoded.slice(0, split) : "";
-    const pass = split >= 0 ? decoded.slice(split + 1) : "";
-    return user === "gtvi" && pass === env.USAGE_PASSWORD;
+    return await crypto.subtle.verify(
+      "HMAC",
+      await hmacKey(env.USAGE_PASSWORD),
+      unbase64url(parts[2]),
+      new TextEncoder().encode(`${parts[0]}.${parts[1]}`)
+    );
   } catch {
     return false;
   }
@@ -35,7 +63,12 @@ function cleanRows(rows, dimension) {
 
 export async function onRequestGet(context) {
   const { request, env } = context;
-  if (!authorised(request, env)) return unauthorized();
+  if (!(await authorised(request, env))) {
+    return Response.json({ ok: false, message: "Session expired" }, {
+      status: 401,
+      headers: { "Cache-Control": "private, no-store" }
+    });
+  }
 
   if (!env.CF_ACCOUNT_ID || !env.CF_API_TOKEN) {
     return Response.json({
