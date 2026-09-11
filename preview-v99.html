@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#081522">
+<title>GTVI 26 Weather App · Mobile v99 Preview</title>
+<style>
+html,body{margin:0;min-height:100%;background:#081522;color:#f4f8fc;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+#boot{padding:24px;text-align:center;color:#bac9d6;font-size:14px}
+</style>
+</head>
+<body>
+<div id="boot">Loading GTVI 26 Weather App v99…</div>
+<script>
+(async()=>{
+  try{
+    const r=await fetch('./preview-v90.html?v=90-1',{cache:'no-store'});
+    if(!r.ok) throw new Error('Could not load v90 base ('+r.status+')');
+    let html=await r.text();
+
+    const d1Line=[[48.186622,16.383502,199,0],[48.181866,16.379972,201,0.7],[48.176169,16.380286,214,1.4],[48.17042,16.379777,227,2.1],[48.163749,16.382418,244,2.9],[48.15809,16.38269,225,3.5],[48.151632,16.382178,201,4.3],[48.145142,16.382572,190,5],[48.139669,16.382836,181,5.6],[48.132264,16.386082,189,6.5],[48.128019,16.387863,191,7],[48.124042,16.395088,190,7.7],[48.117981,16.397137,188,8.4],[48.111595,16.398549,185,9.2],[48.105777,16.398873,175,9.8],[48.099303,16.394909,178,10.6],[48.093133,16.393517,179,11.3],[48.086312,16.391711,176,12.1],[48.081977,16.390208,173,12.6],[48.080157,16.382305,174,13.3],[48.079077,16.37679,173,14],[48.075364,16.368565,173,14.8],[48.07213,16.361495,174,15.4],[48.067837,16.35516,178,16.1],[48.062955,16.350055,178,16.8],[48.057027,16.34528,178,17.6],[48.054539,16.336483,180,18.3],[48.052506,16.327183,181,19],[48.049542,16.320543,184,19.7],[48.049101,16.313401,192,20.3],[48.045953,16.307052,193,21.1],[48.043261,16.299218,190,21.8],[48.038611,16.293609,193,22.5],[48.032583,16.287741,197,23.3],[48.026577,16.282256,202,24.1],[48.02166,16.277562,206,24.8],[48.017915,16.273939,209,25.3],[48.011326,16.267347,214,26.1],[48.008257,16.264384,215,26.7],[48.003301,16.261526,215,27.3],[47.997594,16.258917,217,28],[47.99099,16.257421,220,28.8],[47.985368,16.253904,220,29.5],[47.978272,16.248767,224,30.3],[47.974364,16.24737,228,30.8],[47.968277,16.244624,234,31.5],[47.962625,16.242015,238,32.3],[47.957336,16.239597,242,32.9],[47.95198,16.237634,249,33.6],[47.946069,16.233775,255,34.4],[47.939875,16.233293,258,35.1],[47.930876,16.23451,258,36.1],[47.928531,16.237082,258,36.4],[47.921269,16.248482,258,37.6],[47.919658,16.250443,260,37.9],[47.914077,16.250616,262,38.5],[47.907734,16.251126,264,39.3],[47.902964,16.250753,268,40],[47.89735,16.249914,270,40.6],[47.891897,16.251407,273,41.3],[47.885638,16.250694,276,42],[47.879355,16.249981,278,42.7],[47.873082,16.249257,279,43.4],[47.865735,16.248395,281,44.2],[47.860054,16.247731,281,44.9],[47.854231,16.24693,280,45.5],[47.847064,16.246118,277,46.3],[47.842026,16.245364,273,46.9],[47.835431,16.244601,270,47.7],[47.829656,16.244293,267,48.3],[47.826187,16.251825,262,49],[47.821811,16.257576,259,49.7],[47.815695,16.258687,261,50.4],[47.809452,16.260146,264,51.1],[47.806064,16.265273,266,51.8],[47.801316,16.270273,269,52.7],[47.79566,16.268289,270,53.3],[47.789175,16.268039,273,54.1],[47.784535,16.268761,275,54.6],[47.777697,16.269051,279,55.4],[47.772259,16.265154,280,56.1],[47.767317,16.260005,283,56.8],[47.760825,16.25691,287,57.5],[47.755631,16.253795,290,58.1],[47.750396,16.249651,293,58.8],[47.746312,16.254331,295,59.5],[47.740916,16.25019,297,60.2],[47.735214,16.247303,303,60.9],[47.730176,16.241316,309,61.7],[47.726388,16.234647,312,62.3],[47.726061,16.226366,307,63.1],[47.725797,16.217626,310,63.7],[47.724786,16.212123,311,64.4],[47.720823,16.205286,314,65.1],[47.719447,16.196324,329,65.9],[47.717464,16.188195,335,66.5],[47.716151,16.181111,325,67.3],[47.712391,16.175591,328,67.9],[47.7099,16.164712,336,68.8],[47.708608,16.157988,338,69.3],[47.706299,16.149435,342,70],[47.703076,16.14185,348,70.7],[47.697713,16.136364,349,71.5],[47.692602,16.132728,352,72.1],[47.685654,16.128794,355,73],[47.680578,16.12896,359,73.5],[47.676939,16.129263,362,74.2],[47.669925,16.129607,367,75],[47.664335,16.130052,375,75.7],[47.657781,16.128449,376,76.4],[47.652357,16.127661,377,77],[47.645973,16.126007,381,77.7],[47.640964,16.130357,385,78.4],[47.63521,16.131954,392,79.1],[47.628813,16.131813,398,79.8],[47.623383,16.128552,399,80.5],[47.617294,16.127569,404,81.2],[47.611313,16.122964,409,82],[47.606055,16.119399,419,82.6],[47.600029,16.116926,422,83.3],[47.595104,16.112061,429,84],[47.590663,16.104843,435,84.8],[47.586039,16.100098,443,85.4],[47.579652,16.099829,447,86.1],[47.57336,16.099146,457,86.8],[47.567037,16.098009,464,87.5],[47.561479,16.096522,473,88.2],[47.555943,16.09037,490,89],[47.552328,16.088103,506,89.6],[47.547594,16.081975,523,90.3],[47.544089,16.07517,548,91],[47.541706,16.073906,601,91.7],[47.541144,16.069558,640,92.4],[47.536827,16.073622,672,93.1],[47.530957,16.071543,711,93.8],[47.524981,16.067903,745,94.6],[47.522959,16.061346,767,95.2],[47.516975,16.060236,810,95.9],[47.515522,16.052841,860,96.8],[47.512808,16.047431,893,97.3],[47.511178,16.04563,924,98],[47.511732,16.037193,951,98.8],[47.511412,16.037001,952,98.8],[47.508605,16.031472,933,99.4],[47.506242,16.029775,911,100.1],[47.501129,16.03441,874,100.8],[47.495627,16.038694,839,101.5],[47.490205,16.042492,788,102.2],[47.485207,16.045038,759,102.9],[47.478573,16.04963,731,103.8],[47.474439,16.05222,731,104.3],[47.468986,16.057941,725,105.1],[47.46281,16.06166,716,105.8],[47.458058,16.063847,693,106.4],[47.451901,16.064523,624,107.1],[47.447927,16.068925,560,107.8],[47.44351,16.062876,528,108.5],[47.441539,16.059099,574,109.2],[47.441426,16.058606,574,109.3]].map(p=>({lat:p[0],lon:p[1],ele:p[2],km:p[3]}));
+    const d1b={key:"D1",ascent:960,date:"2026-09-12",start:"Vienna",finish:"Friedberg",distance:109.3,duration:5.04,max_ele:952,max_km:98.8,max_lat:47.511412,max_lon:16.037001,above:{"1000":0,"1500":0,"2000":0},line:d1Line,samples:[{lat:48.186622,lon:16.383502,ele:199,km:0,ride_h:0,bearing:205,label:"Start"},{lat:48.043261,lon:16.299218,ele:190,km:21.8,ride_h:.87,bearing:219,label:"22 km"},{lat:47.870726,lon:16.248978,ele:280,km:43.7,ride_h:1.8,bearing:184,label:"44 km"},{lat:47.720263,lon:16.198278,ele:323,km:65.7,ride_h:2.68,bearing:252,label:"66 km"},{lat:47.56817,lon:16.098508,ele:463,km:87.4,ride_h:3.66,bearing:189,label:"87 km"},{lat:47.511412,lon:16.037001,ele:952,km:98.8,ride_h:4.63,bearing:231,label:"High point"},{lat:47.441426,lon:16.058606,ele:574,km:109.3,ride_h:5.04,bearing:271,label:"Finish"}]};
+    const routeStart=html.indexOf('const ROUTES={"D1":');
+    const d2Start=html.indexOf(',"D2":',routeStart);
+    if(routeStart<0||d2Start<0) throw new Error('D1 route replacement point not found');
+    html=html.slice(0,routeStart)+'const ROUTES={"D1":'+JSON.stringify(d1b)+html.slice(d2Start);
+
+    html=html.replaceAll('playGearShiftSound();','');
+    html=html.replace('function playGearShiftSound(){','function playGearShiftSound(){ return; /* v99: interaction audio removed */');
+    html=html.replace('b.innerHTML=`<b>${key} · ${wd}</b><span>${dm}</span>`;','b.innerHTML=`<b>${key}</b>`;');
+
+    const alignCss=`
+.mobileSunCompact > span{display:inline-flex!important;align-items:center!important;height:12px!important;line-height:12px!important;}
+.mobileSunCompact > span > b{display:inline-block!important;line-height:12px!important;}
+.mobileSunCompact .sunriseWheelIcon{vertical-align:middle!important;}
+`;
+    html=html.replace('</style>',alignCss+'</style>');
+    const dayButtonCss=`
+.day{padding:10px 2px!important;min-height:40px!important;display:flex!important;align-items:center!important;justify-content:center!important;}
+.day b{font-size:12px!important;line-height:1!important;}
+`;
+    html=html.replace('</style>',dayButtonCss+'</style>');
+    const timeInputCss=`
+.mobileTimeInput{font-size:10px!important;padding-left:2px!important;padding-right:2px!important;letter-spacing:-.01em!important;}
+`;
+    html=html.replace('</style>',timeInputCss+'</style>');
+    const iconCss=`
+.v96WxStack{position:relative;display:inline-block;width:40px;height:40px;vertical-align:middle;}
+.v96WxStack>.cycleSunIcon{position:absolute;left:0;top:0;width:40px;height:40px;}
+.v96WxStack .v96RainForeground{position:absolute;inset:0;width:40px;height:40px;display:block;overflow:visible;}
+.cycleSunIcon.hasCloud .cycleCloud{transform:translate(-1.5px,-1px) scale(1.12);transform-origin:34px 32px;}
+.v96CloudOnly{display:inline-block;width:42px;height:42px;vertical-align:middle;}
+.v96CloudOnly svg{display:block;width:42px;height:42px;overflow:visible;}
+@media(max-width:370px){.wxIcon .v96CloudOnly{width:39px;height:39px}.wxIcon .v96CloudOnly svg{width:39px;height:39px}}
+`;
+    html=html.replace('</style>',iconCss+'</style>');
+    html=html.replace('63:"Rain"','63:"Moderate rain"');
+    const oldWicon='const WICON=c=>c>=95?"⛈️":c===82?rainIntensityIcon(true,3):c===81?rainIntensityIcon(true,2):c>=80?rainIntensityIcon(true,1):c>=65?rainIntensityIcon(false,3):c>=63?rainIntensityIcon(false,2):c>=61?rainIntensityIcon(false,1):c>=51?rainIntensityIcon(false,1):c>=45?"🌫️":c===0?cycleSunIcon(false):c<=2?cycleSunIcon(true):"☁️";';
+    const iconLogic=`function v96CloudIcon(){return '<span class="v96CloudOnly"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M11 29c0-5.4 4.4-9.8 9.8-9.8 3.8 0 7.1 2.1 8.8 5.2 1-.5 2.1-.8 3.3-.8 4.2 0 7.6 3.3 7.6 7.4s-3.4 7.1-7.6 7.1H13c-4.9 0-8.9-3.6-8.9-8.2 0-3.8 2.8-7 6.6-7.8.1 0 .2 0 .3-.1" fill="#b7c5d1" stroke="#dce7ef" stroke-width="1.3"/></svg></span>';} function v96RainIcon(showery,intensity,storm){const n=Math.max(1,Math.min(4,intensity||1));const dropXs=[[24],[18,30],[14,24,34],[11,20,29,38]][n-1];const dropTop=n===1?32:31;const drops=dropXs.map(function(x){const h=n===1?5:n===4?8:7;const w=n===1?1:n===4?1.6:1.35;return '<path d="M '+x+' '+dropTop+' C '+(x-w)+' '+(dropTop+2.4)+' '+(x-w)+' '+(dropTop+h-1.3)+' '+x+' '+(dropTop+h)+' C '+(x+w)+' '+(dropTop+h-1.3)+' '+(x+w)+' '+(dropTop+2.4)+' '+x+' '+dropTop+' Z"/>';}).join('');const cloudFill=n===4?'#75899b':n===3?'#879aac':n===2?'#9eafbf':'#b8c6d2';const sun=showery?cycleSunIcon(false):'';const lightning=storm?'<path d="M27 22 L22 31 H27 L24 39 L34 27 H29 L33 22 Z" fill="#ffd84d" stroke="#f4b500" stroke-width=".7"/>':'';const showerShift=showery?' transform="translate(7 0)"':'';return '<span class="v96WxStack">'+sun+'<svg class="v96RainForeground" viewBox="0 0 48 48" aria-hidden="true"><g'+showerShift+'><g><path d="M14 26.5c0-4.7 3.8-8.5 8.5-8.5 3.2 0 6 1.8 7.5 4.4.8-.4 1.8-.6 2.8-.6 3.7 0 6.7 2.9 6.7 6.5S36.5 34.5 32.8 34.5H15.7C11.4 34.5 8 31.3 8 27.4c0-3.3 2.4-6 5.7-6.8.1 0 .2 0 .3-.1" fill="'+cloudFill+'" stroke="#dce7ef" stroke-width="1.2"/></g><g fill="#65bff1">'+drops+'</g></g>'+lightning+'</svg></span>';} const WICON=c=>c>=99?v96RainIcon(false,4,true):c>=96?v96RainIcon(false,3,true):c>=95?v96RainIcon(false,2,true):c===82?v96RainIcon(true,4,false):c===81?v96RainIcon(true,3,false):c>=80?v96RainIcon(true,2,false):c>=65?v96RainIcon(false,4,false):c>=63?v96RainIcon(false,3,false):c>=61?v96RainIcon(false,2,false):c>=51?v96RainIcon(false,1,false):c>=45?"🌫️":c===0?cycleSunIcon(false):c<=2?cycleSunIcon(true):v96CloudIcon();`;
+    if(!html.includes(oldWicon)) throw new Error('Weather icon mapping point not found');
+    html=html.replace(oldWicon,iconLogic);
+    html=html.replace('return {icon:"☁️",label:"Mostly cloudy"};','return {icon:v96CloudIcon(),label:"Mostly cloudy"};');
+    html=html.replaceAll('Mobile v90 Preview','Mobile v99 Preview');
+    html=html.replaceAll('Mobile v90','Mobile v99 Preview');
+    document.open();document.write(html);document.close();
+  }catch(err){document.getElementById('boot').textContent='Unable to load v99 preview: '+err.message;}
+})();
+</script>
+</body>
+</html>
