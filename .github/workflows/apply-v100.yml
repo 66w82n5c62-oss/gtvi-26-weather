@@ -1,0 +1,59 @@
+name: Apply v100 Day 7
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/apply-v100.yml'
+      - 'day7-v100.json'
+
+permissions:
+  contents: write
+
+jobs:
+  patch-live-app:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Patch Day 7 into live wrapper
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+
+          if "day7-v100.json?v=100-1" not in s:
+              marker = "    html=html.replaceAll('playGearShiftSound();','');"
+              if marker not in s:
+                  raise SystemExit('Insertion marker not found in index.html')
+              block = """    const d7r=await fetch('./day7-v100.json?v=100-1',{cache:'no-store'});
+              if(!d7r.ok) throw new Error('Could not load Day 7 v100 ('+d7r.status+')');
+              const d7=await d7r.json();
+              const d7RouteStart=html.indexOf('const ROUTES={');
+              const d7Start=html.indexOf(',\"D7\":',d7RouteStart);
+              const d7RoutesEnd=html.indexOf('};\\nconst MODELS=',d7Start);
+              if(d7RouteStart<0 || d7Start<0 || d7RoutesEnd<0) throw new Error('D7 route replacement point not found');
+              html=html.slice(0,d7Start)+',\"D7\":'+JSON.stringify(d7)+html.slice(d7RoutesEnd);
+          """
+              s = s.replace(marker, block + '\n' + marker, 1)
+
+          s = s.replace('Mobile v99', 'Mobile v100')
+          s = s.replace('v99:', 'v100:')
+
+          p.write_text(s, encoding='utf-8')
+
+          preview = s.replace('Mobile v100</title>', 'Mobile v100 Preview</title>', 1)
+          Path('preview-v100.html').write_text(preview, encoding='utf-8')
+          PY
+
+      - name: Commit v100
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html preview-v100.html
+          if ! git diff --cached --quiet; then
+            git commit -m "Update live app to v100 with replacement Day 7 route"
+            git push
+          fi
